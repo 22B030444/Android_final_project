@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Цвета из вашего дизайна -->
+    <color name="purple_primary">#D946EF</color>
+    <color name="purple_dark">#A020F0</color>
+    <color name="background_dark">#1A1325</color>
+    <color name="surface_dark">#2D1B3D</color>
+    <color name="search_bar">#3D2952</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="text_secondary">#A0A0A0</color>
+    <color name="text_hint">#666666</color>
+</resources>
