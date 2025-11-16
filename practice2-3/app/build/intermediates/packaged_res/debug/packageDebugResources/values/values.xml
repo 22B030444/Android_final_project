@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="liked_color">#FF0000</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="tn_dark_bg">#101010</color>
+    <color name="tn_divider">#2C2C2C</color>
+    <color name="tn_green">#17B73F</color>
+    <color name="tn_panel">#171717</color>
+    <color name="tn_text_primary">#FFFFFF</color>
+    <color name="tn_text_secondary">#BEBEBE</color>
+    <color name="unliked_color">#808080</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="app_name">practice2.0</string>
+    <string name="back">Back</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="nav_articles">Статьи</string>
+    <string name="nav_comments">Комментарии</string>
+    <string name="nav_home">Главная</string>
+    <string name="nav_menu">Меню</string>
+    <string name="news">NEWS</string>
+    <string name="president">ПОСЛАНИЕ ПРЕЗИДЕНТА 2025</string>
+    <string name="profile">Профиль</string>
+    <string name="ru">RU</string>
+    <string name="search">Поиск</string>
+    <string name="tab_auto">AUTO</string>
+    <string name="tab_edu">EDUCATION</string>
+    <string name="tab_life">LIFE</string>
+    <string name="tab_news">NEWS</string>
+    <string name="tab_sport">SPORT</string>
+    <string name="tab_travel">TRAVEL</string>
+    <style name="TextTab">
+        <item name="android:textColor">@color/tn_text_primary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:paddingRight">16dp</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+    <style name="TextTabSelected" parent="TextTab">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/tn_green</item>
+        <item name="android:background">@drawable/bg_tab_selected</item>
+    </style>
+    <style name="Theme.Practice20" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+
+    </style>
+</resources>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="_125k_cheorin_wanghu"> 125K Cheorin wanghu</string>
+    <string name="_1_1">1 сезон, 1 серия</string>
+    <string name="_2020_2021_1_n_18">2020–2021, комедия, фэнтези, 1 сезон\nКорея Южная, 18+</string>
+    <string name="_8_7">8.7</string>
+    <string name="app_name">practice1</string>
+    <string name="main">Главное</string>
+    <string name="more">Ещё</string>
+    <string name="my">Моё</string>
+    <string name="profile">Профиль</string>
+    <string name="rate">Оценить</string>
+    <string name="search">Поиск</string>
+    <string name="share">Поделиться</string>
+    <string name="synopsis_1">Любвеобильный повар переселяется в тело королевы Чосона. Драйвовая комедия режиссера «Отряда Хваран»</string>
+    <string name="synopsis_2">Молодой повар-ловелас неожиданно переносится из современной Кореи в Чосон XIX века...</string>
+    <string name="tickets">Билеты</string>
+    <string name="watch">Буду смотреть</string>
+    <style name="Base.Theme.Practice1" parent="Theme.Material3.DayNight.NoActionBar">
+        
+        
+    </style>
+    <style name="Theme.Practice1" parent="Base.Theme.Practice1"/>
+</resources>

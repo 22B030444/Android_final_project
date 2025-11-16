@@ -1,0 +1,94 @@
+[
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\drawable_bg_primary_cta.xml.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\drawable\\bg_primary_cta.xml"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\drawable_ic_launcher_foreground.xml.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\drawable\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\mipmap-xxxhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\drawable_ic_launcher_background.xml.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\drawable\\ic_launcher_background.xml"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\mipmap-mdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\mipmap-hdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\layout_activity_main.xml.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\mipmap-xhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\drawable_picture1.webp.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\drawable\\picture1.webp"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\mipmap-xhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\mipmap-xxhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\drawable_background.webp.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\drawable\\background.webp"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\mipmap-xxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\drawable_overlay_bottom_fade.xml.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\drawable\\overlay_bottom_fade.xml"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\drawable_bg_circle_dark.xml.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\drawable\\bg_circle_dark.xml"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\mipmap-xxxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\mipmap-hdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\xml_backup_rules.xml.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\xml\\backup_rules.xml"
+    },
+    {
+        "merged": "com.example.practice1.app-debug-34:/layout_activity_main.xml.flat",
+        "source": "com.example.practice1.app-main-36:/layout/activity_main.xml"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\xml_data_extraction_rules.xml.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\xml\\data_extraction_rules.xml"
+    },
+    {
+        "merged": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-debug-34:\\mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "E:\\AndroidStudioProjects\\MyApplication\\daemon\\8.13\\com.example.practice1.app-main-36:\\mipmap-mdpi\\ic_launcher_round.webp"
+    }
+]
