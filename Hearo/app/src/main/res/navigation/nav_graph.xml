@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <!-- Login Screen - стартовый экран -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.hearo.ui.auth.LoginFragment"
+        android:label="Login">
+        <action
+            android:id="@+id/action_loginFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Home Screen -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.hearo.ui.home.HomeFragment"
+        android:label="Home" />
+
+    <!-- Search Screen -->
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="com.example.hearo.ui.search.SearchFragment"
+        android:label="Search" />
+
+    <!-- Library Screen -->
+    <fragment
+        android:id="@+id/libraryFragment"
+        android:name="com.example.hearo.ui.library.LibraryFragment"
+        android:label="Library" />
+
+</navigation>
