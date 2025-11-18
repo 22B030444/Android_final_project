@@ -4,7 +4,7 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/loginFragment">
 
-    <!-- Login Screen - стартовый экран -->
+    <!-- Login Screen -->
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.hearo.ui.auth.LoginFragment"
@@ -32,6 +32,18 @@
     <fragment
         android:id="@+id/libraryFragment"
         android:name="com.example.hearo.ui.library.LibraryFragment"
-        android:label="Library" />
+        android:label="Library">
+        <action
+            android:id="@+id/action_libraryFragment_to_likedSongsFragment"
+            app:destination="@id/likedSongsFragment" />
+    </fragment>
+
+    <!-- Liked Songs Screen -->
+    <fragment
+        android:id="@+id/likedSongsFragment"
+        android:name="com.example.hearo.ui.library.LikedSongsFragment"
+        android:label="Liked Songs" />
 
 </navigation>
+
+

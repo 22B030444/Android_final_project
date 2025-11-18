@@ -148,7 +148,10 @@ class LoginFragment : Fragment() {
     }
 
     private fun navigateToHome() {
-        findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+        val navController = findNavController()
+        if (navController.currentDestination?.id == R.id.loginFragment) {
+            navController.navigate(R.id.action_loginFragment_to_homeFragment)
+        }
     }
 
     private fun showLoading() {
