@@ -1,6 +1,5 @@
 package com.example.hearo.ui.auth
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -25,7 +24,6 @@ class LoginFragment : Fragment() {
 
     private lateinit var authRepository: AuthRepository
 
-    // Activity Result Launcher для SpotifyAuthActivity
     private val authLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -57,10 +55,9 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Инициализируем repository
         authRepository = AuthRepository(AppPreferences(requireContext()))
 
-        // Проверяем, может пользователь уже залогинен
+        // Проверяем, может уже залогинен
         if (authRepository.isLoggedIn()) {
             navigateToHome()
             return
@@ -70,27 +67,72 @@ class LoginFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
+        // Основная кнопка Log in
         binding.loginButton.setOnClickListener {
-            startSpotifyAuth()
+            onLoginClick()
+        }
+
+        // Социальные кнопки (все ведут к Spotify OAuth)
+        binding.googleButton.setOnClickListener {
+            onLoginClick()
+        }
+
+        binding.appleButton.setOnClickListener {
+            onLoginClick()
+        }
+
+        binding.facebookButton.setOnClickListener {
+            onLoginClick()
+        }
+
+        // Forgot password (заглушка)
+        binding.forgotPasswordText.setOnClickListener {
+            Toast.makeText(
+                requireContext(),
+                "Please use Spotify app to reset password",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
-    private fun startSpotifyAuth() {
+    private fun onLoginClick() {
+        val username = binding.usernameEditText.text.toString().trim()
+        val password = binding.passwordEditText.text.toString().trim()
+
+        // Валидация (опционально)
+        if (username.isEmpty()) {
+            Toast.makeText(requireContext(), "Please enter username", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (password.isEmpty()) {
+            Toast.makeText(requireContext(), "Please enter password", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Показываем что-то происходит
         showLoading()
+
+        // Небольшая задержка для эффекта (опционально)
+        binding.root.postDelayed({
+            // Запускаем реальный Spotify OAuth
+            startSpotifyAuth()
+        }, 500)
+    }
+
+    private fun startSpotifyAuth() {
         val intent = Intent(requireContext(), SpotifyAuthActivity::class.java)
         authLauncher.launch(intent)
     }
 
     private fun handleAuthCode(code: String) {
         viewLifecycleOwner.lifecycleScope.launch {
-            showLoading()
-
             val result = authRepository.exchangeCodeForToken(code)
 
             result.onSuccess {
                 Toast.makeText(
                     requireContext(),
-                    "Login successful!",
+                    "Welcome back!",
                     Toast.LENGTH_SHORT
                 ).show()
                 navigateToHome()
@@ -124,3 +166,5 @@ class LoginFragment : Fragment() {
         _binding = null
     }
 }
+
+
