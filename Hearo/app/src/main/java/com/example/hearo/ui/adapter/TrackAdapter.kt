@@ -15,6 +15,17 @@ class TrackAdapter(
     private val onFavoriteClick: (Track) -> Unit
 ) : ListAdapter<Track, TrackAdapter.TrackViewHolder>(TrackDiffCallback()) {
 
+    // Храним ID треков которые в избранном
+    private var likedTrackIds: Set<String> = emptySet()
+
+    /**
+     * Обновить список лайкнутых треков
+     */
+    fun updateLikedTracks(likedIds: Set<String>) {
+        likedTrackIds = likedIds
+        notifyDataSetChanged() // Обновляем все элементы
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackViewHolder {
         val binding = ItemTrackBinding.inflate(
             LayoutInflater.from(parent.context),
@@ -33,14 +44,11 @@ class TrackAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(track: Track) {
-            // Название трека
             binding.trackName.text = track.name
 
-            // Исполнители (может быть несколько)
             val artistsText = track.artists.joinToString(", ") { it.name }
             binding.artistName.text = artistsText
 
-            // Обложка альбома
             val imageUrl = track.album.images.firstOrNull()?.url
             Glide.with(binding.root.context)
                 .load(imageUrl)
@@ -48,18 +56,21 @@ class TrackAdapter(
                 .error(R.color.surface_dark)
                 .into(binding.trackImage)
 
-            // Клик по треку
+            // Устанавливаем правильную иконку в зависимости от состояния
+            val isLiked = likedTrackIds.contains(track.id)
+            if (isLiked) {
+                binding.favoriteButton.setImageResource(R.drawable.ic_favorite)
+            } else {
+                binding.favoriteButton.setImageResource(R.drawable.ic_favorite_border)
+            }
+
             binding.root.setOnClickListener {
                 onTrackClick(track)
             }
 
-            // Клик по кнопке избранного
             binding.favoriteButton.setOnClickListener {
                 onFavoriteClick(track)
             }
-
-            // TODO: Позже добавим проверку, в избранном ли трек
-            // и будем менять иконку ic_favorite_border <-> ic_favorite
         }
     }
 

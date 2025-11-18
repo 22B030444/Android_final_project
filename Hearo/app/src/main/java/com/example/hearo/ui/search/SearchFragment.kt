@@ -31,12 +31,7 @@ class SearchFragment : Fragment() {
                 // TODO: Откроем PlayerFragment позже
             },
             onFavoriteClick = { track ->
-                viewModel.toggleFavorite(track)
-                Toast.makeText(
-                    requireContext(),
-                    "Added to Liked Songs",
-                    Toast.LENGTH_SHORT
-                ).show()
+                viewModel.toggleLocalLike(track)
             }
         )
     }
@@ -56,7 +51,7 @@ class SearchFragment : Fragment() {
         setupRecyclerView()
         setupSearch()
         observeSearchState()
-        observeSearchHistory()
+        observeLikedTracks()
     }
 
     private fun setupRecyclerView() {
@@ -67,7 +62,6 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupSearch() {
-        // Поиск с debounce
         binding.searchEditText.addTextChangedListener { text ->
             val query = text.toString()
             viewModel.searchTracks(query)
@@ -109,20 +103,17 @@ class SearchFragment : Fragment() {
                     binding.recyclerView.visibility = View.GONE
                     binding.emptyStateText.visibility = View.VISIBLE
                     binding.emptyStateText.text = "Error: ${state.message}"
-
-                    Toast.makeText(
-                        requireContext(),
-                        state.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
                 }
             }
         }
     }
 
-    private fun observeSearchHistory() {
-        viewModel.searchHistory.observe(viewLifecycleOwner) { history ->
-            // TODO: Можем показать историю поиска позже
+    /**
+     * Отслеживаем изменения в лайкнутых треках
+     */
+    private fun observeLikedTracks() {
+        viewModel.likedTracksIds.observe(viewLifecycleOwner) { likedIds ->
+            adapter.updateLikedTracks(likedIds)
         }
     }
 

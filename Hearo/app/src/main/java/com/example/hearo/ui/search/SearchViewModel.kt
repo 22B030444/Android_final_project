@@ -25,18 +25,19 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     private val _searchHistory = MutableLiveData<List<String>>()
     val searchHistory: LiveData<List<String>> = _searchHistory
 
+    // Храним состояние лайков для каждого трека
+    private val _likedTracksIds = MutableLiveData<Set<String>>()
+    val likedTracksIds: LiveData<Set<String>> = _likedTracksIds
+
     private var searchJob: Job? = null
 
     init {
         loadSearchHistory()
+        loadLikedTracksIds()
         _searchState.value = UiState.Idle
     }
 
-    /**
-     * Поиск треков с debounce (задержка 500мс)
-     */
     fun searchTracks(query: String) {
-        // Отменяем предыдущий поиск
         searchJob?.cancel()
 
         if (query.isBlank()) {
@@ -45,15 +46,15 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         searchJob = viewModelScope.launch {
-            // Debounce - ждем 500мс
-            delay(500)
+            delay(500) // Debounce
 
             _searchState.value = UiState.Loading
 
             musicRepository.searchTracks(query)
                 .onSuccess { tracks ->
                     _searchState.value = UiState.Success(tracks)
-                    loadSearchHistory() // Обновляем историю
+                    loadSearchHistory()
+                    loadLikedTracksIds() // Обновляем состояние лайков
                 }
                 .onFailure { error ->
                     _searchState.value = UiState.Error(error.message ?: "Search failed")
@@ -62,18 +63,17 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     /**
-     * Добавить/удалить из избранного
+     * Переключить локальное избранное
      */
-    fun toggleFavorite(track: Track) {
+    fun toggleLocalLike(track: Track) {
         viewModelScope.launch {
-            // Проверяем, в избранном ли трек
-            musicRepository.isTrackSaved(track.id)
-                .onSuccess { isSaved ->
-                    if (isSaved) {
-                        musicRepository.removeSavedTrack(track.id)
-                    } else {
-                        musicRepository.saveTrack(track.id)
-                    }
+            musicRepository.toggleLocalLike(track)
+                .onSuccess { isNowLiked ->
+                    // Обновляем список лайкнутых ID
+                    loadLikedTracksIds()
+                }
+                .onFailure { error ->
+                    // Можно показать Toast через LiveData
                 }
         }
     }
@@ -85,6 +85,17 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     fun clearSearchHistory() {
         musicRepository.clearSearchHistory()
         loadSearchHistory()
+    }
+
+    /**
+     * Загружаем ID всех лайкнутых треков для отображения сердечка
+     */
+    private fun loadLikedTracksIds() {
+        viewModelScope.launch {
+            musicRepository.getLocalLikedTracks().collect { tracks ->
+                _likedTracksIds.value = tracks.map { it.id }.toSet()
+            }
+        }
     }
 }
 
