@@ -10,31 +10,18 @@
     <!-- Логотип -->
     <ImageView
         android:id="@+id/logoImage"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:src="@mipmap/ic_launcher"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:src="@mipmap/ic_launcher_foreground"
         android:contentDescription="Hearo Logo"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/titleText"
+        app:layout_constraintBottom_toTopOf="@id/usernameLabel"
         app:layout_constraintVertical_chainStyle="packed"
         android:layout_marginBottom="24dp" />
 
-    <!-- Название приложения -->
-    <TextView
-        android:id="@+id/titleText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hearo"
-        android:textSize="48sp"
-        android:textColor="@color/purple_primary"
-        android:fontFamily="sans-serif-medium"
-        android:layout_marginBottom="32dp"
-        app:layout_constraintTop_toBottomOf="@id/logoImage"
-        app:layout_constraintBottom_toTopOf="@id/usernameLabel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+
 
     <!-- Username Label -->
     <TextView
@@ -44,8 +31,8 @@
         android:text="Username"
         android:textColor="@color/white"
         android:textSize="14sp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintTop_toBottomOf="@id/titleText"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/logoImage"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -83,7 +70,7 @@
                 android:layout_weight="1"
                 android:layout_marginStart="12dp"
                 android:background="@android:color/transparent"
-                android:hint="allukaaa"
+                android:hint="username"
                 android:textColorHint="@color/text_secondary"
                 android:textColor="@color/white"
                 android:inputType="text"
@@ -102,6 +89,7 @@
         android:textColor="@color/white"
         android:textSize="14sp"
         android:layout_marginBottom="8dp"
+        android:padding="8dp"
         app:layout_constraintTop_toBottomOf="@id/usernameCard"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -159,6 +147,7 @@
         android:textColor="@color/text_secondary"
         android:textSize="12sp"
         android:layout_marginBottom="24dp"
+        android:paddingTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/passwordCard"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -235,10 +224,10 @@
             app:cardElevation="0dp">
 
             <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_google"
+                android:src="@mipmap/google_ic_foreground"
                 android:contentDescription="Google login" />
 
         </com.google.android.material.card.MaterialCardView>
@@ -254,10 +243,10 @@
             app:cardElevation="0dp">
 
             <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_apple"
+                android:src="@mipmap/apple_ic_foreground"
                 app:tint="@color/white"
                 android:contentDescription="Apple login" />
 
@@ -273,10 +262,10 @@
             app:cardElevation="0dp">
 
             <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_facebook"
+                android:src="@mipmap/facebook_ic_foreground"
                 android:contentDescription="Facebook login" />
 
         </com.google.android.material.card.MaterialCardView>
