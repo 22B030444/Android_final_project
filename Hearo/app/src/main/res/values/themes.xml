@@ -3,8 +3,7 @@
     <style name="Base.Theme.Hearo" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/purple_primary</item>
         <item name="colorPrimaryVariant">@color/purple_dark</item>
-        <item name="android:statusBarColor">@color/background_dark</item>
-        <item name="android:windowBackground">@color/background_dark</item>
+
     </style>
 
     <style name="Theme.Hearo" parent="Base.Theme.Hearo" />
