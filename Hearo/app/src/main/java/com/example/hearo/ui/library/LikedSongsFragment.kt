@@ -22,13 +22,11 @@ class LikedSongsFragment : Fragment() {
     private val adapter by lazy {
         TrackAdapter(
             onTrackClick = { track ->
-                Toast.makeText(
-                    requireContext(),
-                    "Playing: ${track.name}",
-                    Toast.LENGTH_SHORT
-                ).show()
-                // TODO: Откроем PlayerFragment позже
+                // Переход к плееру
+                val action = LikedSongsFragmentDirections.actionLikedSongsFragmentToPlayerFragment(track)
+                findNavController().navigate(action)
             },
+                // TODO: Откроем PlayerFragment позже
             onFavoriteClick = { track ->
                 // Удаляем из избранного
                 viewModel.removeTrack(track)

@@ -37,7 +37,7 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Табы для переключения (Tracks / Albums) -->
+    <!-- Табы для переключения (Tracks / Albums / Artists) -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/searchTypeTabLayout"
         android:layout_width="0dp"
@@ -64,6 +64,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Albums" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Artists" />
 
     </com.google.android.material.tabs.TabLayout>
 

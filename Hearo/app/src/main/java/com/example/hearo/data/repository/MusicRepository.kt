@@ -9,6 +9,7 @@ import com.example.hearo.data.database.entity.toEntity
 import com.example.hearo.data.database.entity.toTrack
 import com.example.hearo.data.model.auth.UserProfile
 import com.example.hearo.data.model.spotify.AlbumFull
+import com.example.hearo.data.model.spotify.ArtistFull
 import com.example.hearo.data.model.spotify.Track
 import com.example.hearo.data.preferences.AppPreferences
 import kotlinx.coroutines.Dispatchers
@@ -74,6 +75,34 @@ class MusicRepository(
         }
     }
     /**
+     * Поиск артистов
+     */
+    suspend fun searchArtists(query: String, limit: Int = 20): Result<List<ArtistFull>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                if (!authRepository.ensureValidToken()) {
+                    return@withContext Result.failure(Exception("Token refresh failed"))
+                }
+
+                val response = spotifyApi.search(
+                    query = query,
+                    type = "artist",
+                    limit = limit
+                )
+
+                val artists = response.artists?.items ?: emptyList()
+                preferences.saveSearchQuery(query)
+
+                Log.d("MusicRepository", "Found ${artists.size} artists")
+                Result.success(artists)
+
+            } catch (e: Exception) {
+                Log.e("MusicRepository", "Artist search failed", e)
+                Result.failure(e)
+            }
+        }
+    }
+    /**
      * Поиск альбомов
      */
     suspend fun searchAlbums(query: String, limit: Int = 20): Result<List<AlbumFull>> {
@@ -103,9 +132,9 @@ class MusicRepository(
     }
 
     /**
-     * Поиск треков И альбомов одновременно
+     * Поиск треков, альбомов И артистов одновременно
      */
-    suspend fun searchAll(query: String, limit: Int = 20): Result<Pair<List<Track>, List<AlbumFull>>> {
+    suspend fun searchAll(query: String, limit: Int = 20): Result<Triple<List<Track>, List<AlbumFull>, List<ArtistFull>>> {
         return withContext(Dispatchers.IO) {
             try {
                 if (!authRepository.ensureValidToken()) {
@@ -114,16 +143,17 @@ class MusicRepository(
 
                 val response = spotifyApi.search(
                     query = query,
-                    type = "track,album",
+                    type = "track,album,artist",
                     limit = limit
                 )
 
                 val tracks = response.tracks?.items ?: emptyList()
                 val albums = response.albums?.items ?: emptyList()
+                val artists = response.artists?.items ?: emptyList()
                 preferences.saveSearchQuery(query)
 
-                Log.d("MusicRepository", "Found ${tracks.size} tracks and ${albums.size} albums")
-                Result.success(Pair(tracks, albums))
+                Log.d("MusicRepository", "Found ${tracks.size} tracks, ${albums.size} albums, ${artists.size} artists")
+                Result.success(Triple(tracks, albums, artists))
 
             } catch (e: Exception) {
                 Log.e("MusicRepository", "Search failed", e)

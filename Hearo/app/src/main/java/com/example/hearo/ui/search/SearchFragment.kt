@@ -5,13 +5,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.os.bundleOf
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.hearo.R
 import com.example.hearo.data.model.UiState
 import com.example.hearo.databinding.FragmentSearchBinding
 import com.example.hearo.ui.adapter.AlbumAdapter
+import com.example.hearo.ui.adapter.ArtistAdapter
 import com.example.hearo.ui.adapter.TrackAdapter
 import com.google.android.material.tabs.TabLayout
 
@@ -25,7 +29,11 @@ class SearchFragment : Fragment() {
     private val trackAdapter by lazy {
         TrackAdapter(
             onTrackClick = { track ->
-                Toast.makeText(requireContext(), "Playing: ${track.name}", Toast.LENGTH_SHORT).show()
+                val bundle = bundleOf("track" to track)
+                findNavController().navigate(
+                    R.id.action_searchFragment_to_playerFragment,
+                    bundle
+                )
             },
             onFavoriteClick = { track ->
                 viewModel.toggleLocalLike(track)
@@ -37,7 +45,15 @@ class SearchFragment : Fragment() {
         AlbumAdapter(
             onAlbumClick = { album ->
                 Toast.makeText(requireContext(), "Album: ${album.name}", Toast.LENGTH_SHORT).show()
-                // TODO: Открыть экран с треками альбома
+            }
+        )
+    }
+
+    private val artistAdapter by lazy {
+        ArtistAdapter(
+            onArtistClick = { artist ->
+                Toast.makeText(requireContext(), "Artist: ${artist.name}", Toast.LENGTH_SHORT).show()
+                // TODO: Открыть экран артиста
             }
         )
     }
@@ -62,7 +78,6 @@ class SearchFragment : Fragment() {
 
     private fun setupRecyclerView() {
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        // По умолчанию показываем треки
         binding.recyclerView.adapter = trackAdapter
     }
 
@@ -95,6 +110,15 @@ class SearchFragment : Fragment() {
                             viewModel.search(currentQuery)
                         }
                     }
+                    2 -> {
+                        // Artists
+                        viewModel.setSearchType(SearchType.ARTISTS)
+                        binding.recyclerView.adapter = artistAdapter
+                        val currentQuery = binding.searchEditText.text.toString()
+                        if (currentQuery.isNotEmpty()) {
+                            viewModel.search(currentQuery)
+                        }
+                    }
                 }
             }
 
@@ -104,21 +128,24 @@ class SearchFragment : Fragment() {
     }
 
     private fun observeStates() {
-        // Наблюдаем за состоянием треков
         viewModel.searchTracksState.observe(viewLifecycleOwner) { state ->
             if (viewModel.currentSearchType.value == SearchType.TRACKS) {
                 handleTracksState(state)
             }
         }
 
-        // Наблюдаем за состоянием альбомов
         viewModel.searchAlbumsState.observe(viewLifecycleOwner) { state ->
             if (viewModel.currentSearchType.value == SearchType.ALBUMS) {
                 handleAlbumsState(state)
             }
         }
 
-        // Наблюдаем за лайкнутыми треками
+        viewModel.searchArtistsState.observe(viewLifecycleOwner) { state ->
+            if (viewModel.currentSearchType.value == SearchType.ARTISTS) {
+                handleArtistsState(state)
+            }
+        }
+
         viewModel.likedTracksIds.observe(viewLifecycleOwner) { likedIds ->
             trackAdapter.updateLikedTracks(likedIds)
         }
@@ -188,6 +215,44 @@ class SearchFragment : Fragment() {
                     binding.recyclerView.visibility = View.VISIBLE
                     binding.emptyStateText.visibility = View.GONE
                     albumAdapter.submitList(state.data)
+                }
+            }
+
+            is UiState.Error -> {
+                binding.progressBar.visibility = View.GONE
+                binding.recyclerView.visibility = View.GONE
+                binding.emptyStateText.visibility = View.VISIBLE
+                binding.emptyStateText.text = "Error: ${state.message}"
+            }
+        }
+    }
+
+    private fun handleArtistsState(state: UiState<List<com.example.hearo.data.model.spotify.ArtistFull>>) {
+        when (state) {
+            is UiState.Idle -> {
+                binding.progressBar.visibility = View.GONE
+                binding.recyclerView.visibility = View.GONE
+                binding.emptyStateText.visibility = View.VISIBLE
+                binding.emptyStateText.text = "Search for artists"
+            }
+
+            is UiState.Loading -> {
+                binding.progressBar.visibility = View.VISIBLE
+                binding.recyclerView.visibility = View.GONE
+                binding.emptyStateText.visibility = View.GONE
+            }
+
+            is UiState.Success -> {
+                binding.progressBar.visibility = View.GONE
+
+                if (state.data.isEmpty()) {
+                    binding.recyclerView.visibility = View.GONE
+                    binding.emptyStateText.visibility = View.VISIBLE
+                    binding.emptyStateText.text = "No artists found"
+                } else {
+                    binding.recyclerView.visibility = View.VISIBLE
+                    binding.emptyStateText.visibility = View.GONE
+                    artistAdapter.submitList(state.data)
                 }
             }
 

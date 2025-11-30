@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hearo.data.model.spotify.AlbumFull
+import com.example.hearo.data.model.spotify.ArtistFull
 import com.example.hearo.data.model.spotify.Track
 import com.example.hearo.data.model.UiState
 import com.example.hearo.data.preferences.AppPreferences
@@ -18,7 +19,7 @@ import kotlinx.coroutines.launch
 enum class SearchType {
     TRACKS,
     ALBUMS,
-    ALL
+    ARTISTS
 }
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
@@ -31,6 +32,9 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     private val _searchAlbumsState = MutableLiveData<UiState<List<AlbumFull>>>()
     val searchAlbumsState: LiveData<UiState<List<AlbumFull>>> = _searchAlbumsState
+
+    private val _searchArtistsState = MutableLiveData<UiState<List<ArtistFull>>>()
+    val searchArtistsState: LiveData<UiState<List<ArtistFull>>> = _searchArtistsState
 
     private val _currentSearchType = MutableLiveData<SearchType>(SearchType.TRACKS)
     val currentSearchType: LiveData<SearchType> = _currentSearchType
@@ -48,41 +52,34 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         loadLikedTracksIds()
         _searchTracksState.value = UiState.Idle
         _searchAlbumsState.value = UiState.Idle
+        _searchArtistsState.value = UiState.Idle
     }
 
-    /**
-     * Изменить тип поиска
-     */
     fun setSearchType(type: SearchType) {
         _currentSearchType.value = type
     }
 
-    /**
-     * Универсальный поиск
-     */
     fun search(query: String) {
         searchJob?.cancel()
 
         if (query.isBlank()) {
             _searchTracksState.value = UiState.Idle
             _searchAlbumsState.value = UiState.Idle
+            _searchArtistsState.value = UiState.Idle
             return
         }
 
         when (_currentSearchType.value) {
             SearchType.TRACKS -> searchTracks(query)
             SearchType.ALBUMS -> searchAlbums(query)
-            SearchType.ALL -> searchAll(query)
+            SearchType.ARTISTS -> searchArtists(query)
             null -> searchTracks(query)
         }
     }
 
-    /**
-     * Поиск только треков
-     */
     private fun searchTracks(query: String) {
         searchJob = viewModelScope.launch {
-            delay(500) // Debounce
+            delay(500)
 
             _searchTracksState.value = UiState.Loading
 
@@ -98,12 +95,9 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    /**
-     * Поиск только альбомов
-     */
     private fun searchAlbums(query: String) {
         searchJob = viewModelScope.launch {
-            delay(500) // Debounce
+            delay(500)
 
             _searchAlbumsState.value = UiState.Loading
 
@@ -118,26 +112,19 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    /**
-     * Поиск треков и альбомов одновременно
-     */
-    private fun searchAll(query: String) {
+    private fun searchArtists(query: String) {
         searchJob = viewModelScope.launch {
-            delay(500) // Debounce
+            delay(500)
 
-            _searchTracksState.value = UiState.Loading
-            _searchAlbumsState.value = UiState.Loading
+            _searchArtistsState.value = UiState.Loading
 
-            musicRepository.searchAll(query)
-                .onSuccess { (tracks, albums) ->
-                    _searchTracksState.value = UiState.Success(tracks)
-                    _searchAlbumsState.value = UiState.Success(albums)
+            musicRepository.searchArtists(query)
+                .onSuccess { artists ->
+                    _searchArtistsState.value = UiState.Success(artists)
                     loadSearchHistory()
-                    loadLikedTracksIds()
                 }
                 .onFailure { error ->
-                    _searchTracksState.value = UiState.Error(error.message ?: "Search failed")
-                    _searchAlbumsState.value = UiState.Error(error.message ?: "Search failed")
+                    _searchArtistsState.value = UiState.Error(error.message ?: "Search failed")
                 }
         }
     }
