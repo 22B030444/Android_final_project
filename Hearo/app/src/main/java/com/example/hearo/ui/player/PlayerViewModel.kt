@@ -20,11 +20,23 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     val mediaPlayer = MediaPlayerManager()
 
+    // Текущий трек
     private val _currentTrack = MutableStateFlow<Track?>(null)
     val currentTrack: StateFlow<Track?> = _currentTrack
 
+    // Очередь треков (для Previous/Next)
+    private val _playlist = MutableStateFlow<List<Track>>(emptyList())
+    private var currentTrackIndex = 0
+
+    // Состояния
     private val _isLiked = MutableStateFlow(false)
     val isLiked: StateFlow<Boolean> = _isLiked
+
+    private val _isShuffle = MutableStateFlow(false)
+    val isShuffle: StateFlow<Boolean> = _isShuffle
+
+    private val _repeatMode = MutableStateFlow(RepeatMode.OFF)
+    val repeatMode: StateFlow<RepeatMode> = _repeatMode
 
     private val _currentPosition = MutableStateFlow(0)
     val currentPosition: StateFlow<Int> = _currentPosition
@@ -37,17 +49,39 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     /**
      * Установить и воспроизвести трек
      */
-    fun setTrack(track: Track) {
+    fun setTrack(track: Track, playlist: List<Track> = listOf(track)) {
         _currentTrack.value = track
+        _playlist.value = playlist
+        currentTrackIndex = playlist.indexOf(track).takeIf { it >= 0 } ?: 0
 
         // Проверяем, в избранном ли трек
         checkIfLiked(track.id)
 
         // Начинаем воспроизведение
+        playCurrentTrack()
+    }
+
+    /**
+     * Воспроизвести текущий трек
+     */
+    private fun playCurrentTrack() {
+        val track = _currentTrack.value ?: return
+
         track.previewUrl?.let { url ->
             mediaPlayer.play(url)
-            _duration.value = 30000 // Превью всегда 30 секунд
+
+            // Устанавливаем длительность (preview всегда ~30 сек, но берем реальную)
+            viewModelScope.launch {
+                // Ждем немного пока mediaPlayer подготовится
+                delay(500)
+                val realDuration = mediaPlayer.getDuration()
+                _duration.value = if (realDuration > 0) realDuration else 30000
+            }
+
             startProgressUpdate()
+        } ?: run {
+            // Нет preview URL
+            mediaPlayer.stop()
         }
     }
 
@@ -61,6 +95,79 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         } else {
             mediaPlayer.resume()
             startProgressUpdate()
+        }
+    }
+
+    /**
+     * Следующий трек
+     */
+    fun playNext() {
+        val playlist = _playlist.value
+        if (playlist.isEmpty()) return
+
+        when (_repeatMode.value) {
+            RepeatMode.ONE -> {
+                // Повторяем текущий трек
+                playCurrentTrack()
+            }
+            else -> {
+                // Переходим к следующему
+                currentTrackIndex = if (_isShuffle.value) {
+                    // Случайный трек
+                    playlist.indices.random()
+                } else {
+                    // Следующий по порядку
+                    (currentTrackIndex + 1) % playlist.size
+                }
+
+                _currentTrack.value = playlist[currentTrackIndex]
+                checkIfLiked(playlist[currentTrackIndex].id)
+                playCurrentTrack()
+            }
+        }
+    }
+
+    /**
+     * Предыдущий трек
+     */
+    fun playPrevious() {
+        val playlist = _playlist.value
+        if (playlist.isEmpty()) return
+
+        // Если прошло более 3 секунд - перематываем в начало
+        if (mediaPlayer.getCurrentPosition() > 3000) {
+            mediaPlayer.seekTo(0)
+            _currentPosition.value = 0
+            return
+        }
+
+        // Иначе переходим к предыдущему треку
+        currentTrackIndex = if (currentTrackIndex > 0) {
+            currentTrackIndex - 1
+        } else {
+            playlist.size - 1
+        }
+
+        _currentTrack.value = playlist[currentTrackIndex]
+        checkIfLiked(playlist[currentTrackIndex].id)
+        playCurrentTrack()
+    }
+
+    /**
+     * Переключить Shuffle
+     */
+    fun toggleShuffle() {
+        _isShuffle.value = !_isShuffle.value
+    }
+
+    /**
+     * Переключить Repeat
+     */
+    fun toggleRepeat() {
+        _repeatMode.value = when (_repeatMode.value) {
+            RepeatMode.OFF -> RepeatMode.ALL
+            RepeatMode.ALL -> RepeatMode.ONE
+            RepeatMode.ONE -> RepeatMode.OFF
         }
     }
 
@@ -101,7 +208,17 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         stopProgressUpdate()
         progressUpdateJob = viewModelScope.launch {
             while (mediaPlayer.isPlaying.value) {
-                _currentPosition.value = mediaPlayer.getCurrentPosition()
+                val currentPos = mediaPlayer.getCurrentPosition()
+                _currentPosition.value = currentPos
+
+                // Проверяем конец трека
+                val duration = mediaPlayer.getDuration()
+                if (duration > 0 && currentPos >= duration - 100) {
+                    // Трек закончился
+                    handleTrackCompletion()
+                    break
+                }
+
                 delay(100) // Обновляем каждые 100мс
             }
         }
@@ -112,9 +229,47 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         progressUpdateJob = null
     }
 
+    /**
+     * Обработка завершения трека
+     */
+    private fun handleTrackCompletion() {
+        when (_repeatMode.value) {
+            RepeatMode.ONE -> {
+                // Повторяем текущий
+                playCurrentTrack()
+            }
+            RepeatMode.ALL -> {
+                // Переходим к следующему
+                playNext()
+            }
+            RepeatMode.OFF -> {
+                // Переходим к следующему если не последний
+                val playlist = _playlist.value
+                if (currentTrackIndex < playlist.size - 1) {
+                    playNext()
+                } else {
+                    // Это был последний трек - останавливаемся
+                    stopProgressUpdate()
+                    _currentPosition.value = 0
+                }
+            }
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         mediaPlayer.release()
         stopProgressUpdate()
     }
 }
+
+/**
+ * Режимы повтора
+ */
+enum class RepeatMode {
+    OFF,    // Не повторять
+    ALL,    // Повторять весь плейлист
+    ONE     // Повторять один трек
+}
+
+

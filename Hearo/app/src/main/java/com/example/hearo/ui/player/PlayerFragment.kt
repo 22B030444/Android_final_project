@@ -2,10 +2,10 @@ package com.example.hearo.ui.player
 
 import android.os.Build
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.SeekBar
+import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -15,6 +15,8 @@ import com.example.hearo.R
 import com.example.hearo.data.model.spotify.Track
 import com.example.hearo.databinding.FragmentPlayerBinding
 import kotlinx.coroutines.launch
+import android.view.LayoutInflater
+import android.view.ViewGroup
 
 class PlayerFragment : Fragment() {
 
@@ -35,7 +37,7 @@ class PlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ⭐ ПОЛУЧАЕМ ТРЕК ИЗ BUNDLE
+        // Получаем трек из Bundle
         val track = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arguments?.getParcelable("track", Track::class.java)
         } else {
@@ -44,27 +46,22 @@ class PlayerFragment : Fragment() {
         }
 
         if (track == null) {
-            // Если трека нет - возвращаемся назад
             findNavController().navigateUp()
             return
         }
 
-        // Устанавливаем трек в ViewModel
+        // Устанавливаем трек
         viewModel.setTrack(track)
 
         setupUI(track)
         setupClickListeners()
-        observePlaybackState()
-        observeLikeState()
-        observeProgress()
+        observeStates()
     }
 
     private fun setupUI(track: Track) {
-        // Название и исполнитель
         binding.trackNameText.text = track.name
         binding.artistNameText.text = track.artists.joinToString(", ") { it.name }
 
-        // Обложка альбома
         val imageUrl = track.album.images.firstOrNull()?.url
         Glide.with(this)
             .load(imageUrl)
@@ -72,7 +69,6 @@ class PlayerFragment : Fragment() {
             .error(R.color.surface_dark)
             .into(binding.albumCoverImage)
 
-        // Общее время (превью всегда 30 сек)
         binding.totalTimeText.text = formatTime(30000)
         binding.seekBar.max = 30000
     }
@@ -88,9 +84,39 @@ class PlayerFragment : Fragment() {
             viewModel.togglePlayPause()
         }
 
+        // Previous
+        binding.previousButton.setOnClickListener {
+            viewModel.playPrevious()
+        }
+
+        // Next
+        binding.nextButton.setOnClickListener {
+            viewModel.playNext()
+        }
+
+        // Shuffle
+        binding.shuffleButton.setOnClickListener {
+            viewModel.toggleShuffle()
+        }
+
+        // Repeat
+        binding.repeatButton.setOnClickListener {
+            viewModel.toggleRepeat()
+        }
+
         // Favorite
         binding.favoriteButton.setOnClickListener {
             viewModel.toggleLike()
+        }
+
+        // Download (заглушка)
+        binding.downloadButton.setOnClickListener {
+            Toast.makeText(requireContext(), "Download not available for preview", Toast.LENGTH_SHORT).show()
+        }
+
+        // Menu (заглушка)
+        binding.menuButton.setOnClickListener {
+            Toast.makeText(requireContext(), "Menu", Toast.LENGTH_SHORT).show()
         }
 
         // SeekBar
@@ -109,37 +135,12 @@ class PlayerFragment : Fragment() {
                 }
             }
         })
-
-        // Заглушки для остальных кнопок
-        binding.previousButton.setOnClickListener {
-            // TODO: Previous track
-        }
-
-        binding.nextButton.setOnClickListener {
-            // TODO: Next track
-        }
-
-        binding.shuffleButton.setOnClickListener {
-            // TODO: Shuffle
-        }
-
-        binding.repeatButton.setOnClickListener {
-            // TODO: Repeat
-        }
-
-        binding.downloadButton.setOnClickListener {
-            // TODO: Download
-        }
-
-        binding.menuButton.setOnClickListener {
-            // TODO: Menu
-        }
     }
 
-    private fun observePlaybackState() {
+    private fun observeStates() {
+        // Воспроизведение
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.mediaPlayer.isPlaying.collect { isPlaying ->
-                // Меняем иконку Play/Pause
                 if (isPlaying) {
                     binding.playPauseButton.setImageResource(R.drawable.ic_pause)
                 } else {
@@ -147,12 +148,29 @@ class PlayerFragment : Fragment() {
                 }
             }
         }
-    }
 
-    private fun observeLikeState() {
+        // Подготовка
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.mediaPlayer.isPreparing.collect { isPreparing ->
+                // Можно показать индикатор загрузки
+                if (isPreparing) {
+                    // Показываем что идет загрузка
+                }
+            }
+        }
+
+        // Ошибки
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.mediaPlayer.error.collect { error ->
+                error?.let {
+                    Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        // Избранное
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.isLiked.collect { isLiked ->
-                // Меняем иконку избранного
                 if (isLiked) {
                     binding.favoriteButton.setImageResource(R.drawable.ic_favorite)
                 } else {
@@ -160,24 +178,78 @@ class PlayerFragment : Fragment() {
                 }
             }
         }
-    }
 
-    private fun observeProgress() {
+        // Shuffle
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.isShuffle.collect { isShuffle ->
+                if (isShuffle) {
+                    binding.shuffleButton.setColorFilter(
+                        ContextCompat.getColor(requireContext(), R.color.purple_primary)
+                    )
+                } else {
+                    binding.shuffleButton.setColorFilter(
+                        ContextCompat.getColor(requireContext(), R.color.white)
+                    )
+                }
+            }
+        }
+
+        // Repeat
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.repeatMode.collect { mode ->
+                when (mode) {
+                    RepeatMode.OFF -> {
+                        binding.repeatButton.setColorFilter(
+                            ContextCompat.getColor(requireContext(), R.color.white)
+                        )
+                    }
+                    RepeatMode.ALL, RepeatMode.ONE -> {
+                        binding.repeatButton.setColorFilter(
+                            ContextCompat.getColor(requireContext(), R.color.purple_primary)
+                        )
+                    }
+                }
+            }
+        }
+
+        // Прогресс
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.currentPosition.collect { position ->
                 binding.seekBar.progress = position
                 binding.currentTimeText.text = formatTime(position)
             }
         }
+
+        // Длительность
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.duration.collect { duration ->
+                if (duration > 0) {
+                    binding.seekBar.max = duration
+                    binding.totalTimeText.text = formatTime(duration)
+                }
+            }
+        }
+
+        // Смена трека
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.currentTrack.collect { track ->
+                track?.let {
+                    setupUI(it)
+                }
+            }
+        }
     }
 
-    /**
-     * Форматировать время в мм:сс
-     */
     private fun formatTime(milliseconds: Int): String {
         val seconds = (milliseconds / 1000) % 60
         val minutes = (milliseconds / 1000) / 60
         return String.format("%d:%02d", minutes, seconds)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Приостанавливаем воспроизведение когда уходим с экрана
+        viewModel.mediaPlayer.pause()
     }
 
     override fun onDestroyView() {
