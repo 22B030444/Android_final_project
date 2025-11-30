@@ -1,7 +1,10 @@
 package com.example.hearo.data.model.spotify
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 data class Track(
     val id: String,
     val name: String,
@@ -18,22 +21,13 @@ data class Track(
 
     @SerializedName("external_urls")
     val externalUrls: ExternalUrls?
-)
+) : Parcelable
 
-data class Artist(
-    val id: String,
-    val name: String,
 
-    @SerializedName("external_urls")
-    val externalUrls: ExternalUrls?
-)
-
+@Parcelize
 data class SpotifyImage(
     val url: String,
     val height: Int?,
     val width: Int?
-)
+) : Parcelable
 
-data class ExternalUrls(
-    val spotify: String?
-)

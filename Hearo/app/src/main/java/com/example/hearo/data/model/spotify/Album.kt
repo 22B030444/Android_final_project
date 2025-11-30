@@ -1,6 +1,8 @@
 package com.example.hearo.data.model.spotify
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
 
 /**
  * Полная модель альбома для результатов поиска
@@ -29,6 +31,7 @@ data class AlbumFull(
 /**
  * Упрощенная модель альбома (используется в Track)
  */
+@Parcelize
 data class Album(
     val id: String,
     val name: String,
@@ -36,4 +39,4 @@ data class Album(
 
     @SerializedName("release_date")
     val releaseDate: String?
-)
+) : Parcelable

@@ -20,13 +20,21 @@
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.hearo.ui.home.HomeFragment"
-        android:label="Home" />
+        android:label="Home">
+        <action
+            android:id="@+id/action_homeFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
 
     <!-- Search Screen -->
     <fragment
         android:id="@+id/searchFragment"
         android:name="com.example.hearo.ui.search.SearchFragment"
-        android:label="Search" />
+        android:label="Search">
+        <action
+            android:id="@+id/action_searchFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
 
     <!-- Library Screen -->
     <fragment
@@ -36,30 +44,22 @@
         <action
             android:id="@+id/action_libraryFragment_to_likedSongsFragment"
             app:destination="@id/likedSongsFragment" />
-        <action
-            android:id="@+id/action_searchFragment_to_playerFragment"
-            app:destination="@id/playerFragment" />
     </fragment>
 
     <!-- Liked Songs Screen -->
     <fragment
         android:id="@+id/likedSongsFragment"
         android:name="com.example.hearo.ui.library.LikedSongsFragment"
-        android:label="Liked Songs" />
+        android:label="Liked Songs">
+        <action
+            android:id="@+id/action_likedSongsFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
 
-    <!-- Player Screen -->
+    <!-- Player Screen (БЕЗ аргументов - используем Bundle) -->
     <fragment
         android:id="@+id/playerFragment"
         android:name="com.example.hearo.ui.player.PlayerFragment"
-        android:label="Player">
-        <action
-            android:id="@+id/action_playerFragment_to_searchFragment"
-            app:destination="@id/searchFragment"/>
-        <argument
-            android:name="track"
-            app:argType="com.example.hearo.data.model.spotify.Track" />
-    </fragment>
+        android:label="Player" />
 
 </navigation>
-
-

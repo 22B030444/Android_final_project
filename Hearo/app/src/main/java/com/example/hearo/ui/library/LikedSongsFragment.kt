@@ -5,10 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.hearo.R
 import com.example.hearo.databinding.FragmentLikedSongsBinding
 import com.example.hearo.ui.adapter.TrackAdapter
 
@@ -22,9 +25,12 @@ class LikedSongsFragment : Fragment() {
     private val adapter by lazy {
         TrackAdapter(
             onTrackClick = { track ->
-                // Переход к плееру
-                val action = LikedSongsFragmentDirections.actionLikedSongsFragmentToPlayerFragment(track)
-                findNavController().navigate(action)
+                // ⭐️ ИСПОЛЬЗУЕМ BUNDLE ВМЕСТО SafeArgs
+                val bundle = bundleOf("track" to track)
+                findNavController().navigate(
+                    R.id.action_likedSongsFragment_to_playerFragment,
+                    bundle
+                )
             },
                 // TODO: Откроем PlayerFragment позже
             onFavoriteClick = { track ->

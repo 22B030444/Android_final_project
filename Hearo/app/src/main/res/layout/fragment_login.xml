@@ -10,8 +10,8 @@
     <!-- Логотип -->
     <ImageView
         android:id="@+id/logoImage"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
         android:src="@mipmap/ic_launcher_foreground"
         android:contentDescription="Hearo Logo"
         app:layout_constraintTop_toTopOf="parent"
@@ -19,7 +19,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/usernameLabel"
         app:layout_constraintVertical_chainStyle="packed"
-        android:layout_marginBottom="24dp" />
+        />
 
 
 

@@ -1,5 +1,6 @@
 package com.example.hearo.ui.player
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,9 +10,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import com.example.hearo.R
+import com.example.hearo.data.model.spotify.Track
 import com.example.hearo.databinding.FragmentPlayerBinding
 import kotlinx.coroutines.launch
 
@@ -21,7 +22,6 @@ class PlayerFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: PlayerViewModel by viewModels()
-    private val args: PlayerFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,8 +35,21 @@ class PlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Получаем трек из аргументов
-        val track = args.track
+        // ⭐ ПОЛУЧАЕМ ТРЕК ИЗ BUNDLE
+        val track = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arguments?.getParcelable("track", Track::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            arguments?.getParcelable("track")
+        }
+
+        if (track == null) {
+            // Если трека нет - возвращаемся назад
+            findNavController().navigateUp()
+            return
+        }
+
+        // Устанавливаем трек в ViewModel
         viewModel.setTrack(track)
 
         setupUI(track)
@@ -46,16 +59,17 @@ class PlayerFragment : Fragment() {
         observeProgress()
     }
 
-    private fun setupUI(track: com.example.hearo.data.model.spotify.Track) {
+    private fun setupUI(track: Track) {
         // Название и исполнитель
         binding.trackNameText.text = track.name
         binding.artistNameText.text = track.artists.joinToString(", ") { it.name }
 
-        // Обложка
+        // Обложка альбома
         val imageUrl = track.album.images.firstOrNull()?.url
         Glide.with(this)
             .load(imageUrl)
             .placeholder(R.color.surface_dark)
+            .error(R.color.surface_dark)
             .into(binding.albumCoverImage)
 
         // Общее время (превью всегда 30 сек)
@@ -64,7 +78,7 @@ class PlayerFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // Назад
+        // Кнопка назад
         binding.backButton.setOnClickListener {
             findNavController().navigateUp()
         }
@@ -171,3 +185,5 @@ class PlayerFragment : Fragment() {
         _binding = null
     }
 }
+
+
