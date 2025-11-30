@@ -55,7 +55,11 @@ class LibraryFragment : Fragment() {
 
     private fun observeLikedTracksCount() {
         viewModel.likedTracksCount.observe(viewLifecycleOwner) { count ->
-            binding.likedSongsCountText.text = "$count songs"
+            binding.likedSongsCountText.text = if (count == 1) {
+                "1 song"
+            } else {
+                "$count songs"
+            }
         }
     }
 

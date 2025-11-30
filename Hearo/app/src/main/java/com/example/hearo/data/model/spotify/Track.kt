@@ -28,15 +28,6 @@ data class Artist(
     val externalUrls: ExternalUrls?
 )
 
-data class Album(
-    val id: String,
-    val name: String,
-    val images: List<SpotifyImage>,
-
-    @SerializedName("release_date")
-    val releaseDate: String?
-)
-
 data class SpotifyImage(
     val url: String,
     val height: Int?,

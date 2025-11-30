@@ -37,6 +37,36 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Табы для переключения (Tracks / Albums) -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/searchTypeTabLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@android:color/transparent"
+        app:tabTextColor="@color/text_secondary"
+        app:tabSelectedTextColor="@color/purple_primary"
+        app:tabIndicatorColor="@color/purple_primary"
+        app:tabIndicatorHeight="2dp"
+        app:tabMode="fixed"
+        app:layout_constraintTop_toBottomOf="@id/searchCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tracks" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Albums" />
+
+    </com.google.android.material.tabs.TabLayout>
+
     <!-- Progress Bar -->
     <ProgressBar
         android:id="@+id/progressBar"
@@ -44,7 +74,7 @@
         android:layout_height="wrap_content"
         android:indeterminateTint="@color/purple_primary"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/searchCard"
+        app:layout_constraintTop_toBottomOf="@id/searchTypeTabLayout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -59,7 +89,7 @@
         android:textSize="16sp"
         android:textAlignment="center"
         android:visibility="visible"
-        app:layout_constraintTop_toBottomOf="@id/searchCard"
+        app:layout_constraintTop_toBottomOf="@id/searchTypeTabLayout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -71,7 +101,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/searchCard"
+        app:layout_constraintTop_toBottomOf="@id/searchTypeTabLayout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

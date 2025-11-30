@@ -8,6 +8,7 @@ import com.example.hearo.data.database.MusicDatabase
 import com.example.hearo.data.database.entity.toEntity
 import com.example.hearo.data.database.entity.toTrack
 import com.example.hearo.data.model.auth.UserProfile
+import com.example.hearo.data.model.spotify.AlbumFull
 import com.example.hearo.data.model.spotify.Track
 import com.example.hearo.data.preferences.AppPreferences
 import kotlinx.coroutines.Dispatchers
@@ -65,6 +66,64 @@ class MusicRepository(
 
                 Log.d("MusicRepository", "Found ${tracks.size} tracks")
                 Result.success(tracks)
+
+            } catch (e: Exception) {
+                Log.e("MusicRepository", "Search failed", e)
+                Result.failure(e)
+            }
+        }
+    }
+    /**
+     * Поиск альбомов
+     */
+    suspend fun searchAlbums(query: String, limit: Int = 20): Result<List<AlbumFull>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                if (!authRepository.ensureValidToken()) {
+                    return@withContext Result.failure(Exception("Token refresh failed"))
+                }
+
+                val response = spotifyApi.search(
+                    query = query,
+                    type = "album",
+                    limit = limit
+                )
+
+                val albums = response.albums?.items ?: emptyList()
+                preferences.saveSearchQuery(query)
+
+                Log.d("MusicRepository", "Found ${albums.size} albums")
+                Result.success(albums)
+
+            } catch (e: Exception) {
+                Log.e("MusicRepository", "Album search failed", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    /**
+     * Поиск треков И альбомов одновременно
+     */
+    suspend fun searchAll(query: String, limit: Int = 20): Result<Pair<List<Track>, List<AlbumFull>>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                if (!authRepository.ensureValidToken()) {
+                    return@withContext Result.failure(Exception("Token refresh failed"))
+                }
+
+                val response = spotifyApi.search(
+                    query = query,
+                    type = "track,album",
+                    limit = limit
+                )
+
+                val tracks = response.tracks?.items ?: emptyList()
+                val albums = response.albums?.items ?: emptyList()
+                preferences.saveSearchQuery(query)
+
+                Log.d("MusicRepository", "Found ${tracks.size} tracks and ${albums.size} albums")
+                Result.success(Pair(tracks, albums))
 
             } catch (e: Exception) {
                 Log.e("MusicRepository", "Search failed", e)

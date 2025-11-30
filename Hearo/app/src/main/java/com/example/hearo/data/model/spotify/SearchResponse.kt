@@ -1,11 +1,20 @@
 package com.example.hearo.data.model.spotify
 
 data class SearchResponse(
-    val tracks: TrackSearchResult?
+    val tracks: TrackSearchResult?,
+    val albums: AlbumSearchResult?
 )
 
 data class TrackSearchResult(
     val items: List<Track>,
+    val total: Int,
+    val limit: Int,
+    val offset: Int
+)
+
+
+data class AlbumSearchResult(
+    val items: List<AlbumFull>,
     val total: Int,
     val limit: Int,
     val offset: Int

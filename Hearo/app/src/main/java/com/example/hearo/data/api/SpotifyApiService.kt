@@ -25,7 +25,7 @@ interface SpotifyApiService {
     @GET("search")
     suspend fun search(
         @Query("q") query: String,
-        @Query("type") type: String = "track",
+        @Query("type") type: String, // "track", "album", "artist" или "track,album"
         @Query("limit") limit: Int = 20,
         @Query("offset") offset: Int = 0
     ): SearchResponse
