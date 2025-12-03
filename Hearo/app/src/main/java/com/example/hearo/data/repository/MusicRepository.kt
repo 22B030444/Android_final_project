@@ -2,267 +2,177 @@ package com.example.hearo.data.repository
 
 import android.content.Context
 import android.util.Log
-import com.example.hearo.data.api.RetrofitClient
-import com.example.hearo.data.api.SpotifyApiService
+import com.example.hearo.data.api.ITunesRetrofitClient
+import com.example.hearo.data.api.JamendoRetrofitClient
 import com.example.hearo.data.database.MusicDatabase
 import com.example.hearo.data.database.entity.toEntity
 import com.example.hearo.data.database.entity.toTrack
-import com.example.hearo.data.model.auth.UserProfile
-import com.example.hearo.data.model.spotify.AlbumFull
-import com.example.hearo.data.model.spotify.ArtistFull
-import com.example.hearo.data.model.spotify.Track
+import com.example.hearo.data.model.UniversalTrack
+import com.example.hearo.data.model.toUniversalTrack
 import com.example.hearo.data.preferences.AppPreferences
+import com.example.hearo.utils.Constants
 import kotlinx.coroutines.Dispatchers
+
+import com.example.hearo.data.model.MusicSource
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
-class MusicRepository(
-    context: Context,
-    private val authRepository: AuthRepository
-) {
+class MusicRepository(context: Context) {
 
-    private val spotifyApi: SpotifyApiService = RetrofitClient.getSpotifyApi(context)
+    private val itunesApi = ITunesRetrofitClient.api
+    private val jamendoApi = JamendoRetrofitClient.api
     private val preferences = AppPreferences(context)
-    private val database = MusicDatabase.getDatabase(context)
-    private val trackDao = database.trackDao()
+    private val trackDao = MusicDatabase.getDatabase(context).trackDao()
 
     // ========================================
-    // SPOTIFY API METHODS
+    // ITUNES SEARCH
     // ========================================
 
-    suspend fun getUserProfile(): Result<UserProfile> {
+    /**
+     * Поиск треков в iTunes
+     */
+    suspend fun searchITunes(query: String, limit: Int = 25): Result<List<UniversalTrack>> {
         return withContext(Dispatchers.IO) {
             try {
-                if (!authRepository.ensureValidToken()) {
-                    return@withContext Result.failure(Exception("Token refresh failed"))
-                }
-
-                val profile = spotifyApi.getUserProfile()
-                Log.d("MusicRepository", "Profile loaded: ${profile.displayName}")
-                Result.success(profile)
-
-            } catch (e: Exception) {
-                Log.e("MusicRepository", "Failed to load profile", e)
-                Result.failure(e)
-            }
-        }
-    }
-
-    suspend fun searchTracks(query: String, limit: Int = 20): Result<List<Track>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                if (!authRepository.ensureValidToken()) {
-                    return@withContext Result.failure(Exception("Token refresh failed"))
-                }
-
-                val response = spotifyApi.search(
-                    query = query,
-                    type = "track",
+                val response = itunesApi.searchMusic(
+                    term = query,
                     limit = limit
                 )
 
-                val tracks = response.tracks?.items ?: emptyList()
+                val tracks = response.results.map { it.toUniversalTrack() }
                 preferences.saveSearchQuery(query)
 
-                Log.d("MusicRepository", "Found ${tracks.size} tracks")
+                Log.d("MusicRepository", "Found ${tracks.size} iTunes tracks")
                 Result.success(tracks)
 
             } catch (e: Exception) {
-                Log.e("MusicRepository", "Search failed", e)
+                Log.e("MusicRepository", "iTunes search failed", e)
                 Result.failure(e)
             }
         }
     }
+
+    // ========================================
+    // JAMENDO SEARCH
+    // ========================================
+
     /**
-     * Поиск артистов
+     * Поиск треков в Jamendo
      */
-    suspend fun searchArtists(query: String, limit: Int = 20): Result<List<ArtistFull>> {
+    suspend fun searchJamendo(query: String, limit: Int = 20): Result<List<UniversalTrack>> {
         return withContext(Dispatchers.IO) {
             try {
-                if (!authRepository.ensureValidToken()) {
-                    return@withContext Result.failure(Exception("Token refresh failed"))
-                }
-
-                val response = spotifyApi.search(
+                val response = jamendoApi.searchTracks(
+                    clientId = Constants.JAMENDO_CLIENT_ID,
                     query = query,
-                    type = "artist",
                     limit = limit
                 )
 
-                val artists = response.artists?.items ?: emptyList()
+                val tracks = response.results.map { it.toUniversalTrack() }
                 preferences.saveSearchQuery(query)
 
-                Log.d("MusicRepository", "Found ${artists.size} artists")
-                Result.success(artists)
-
-            } catch (e: Exception) {
-                Log.e("MusicRepository", "Artist search failed", e)
-                Result.failure(e)
-            }
-        }
-    }
-    /**
-     * Поиск альбомов
-     */
-    suspend fun searchAlbums(query: String, limit: Int = 20): Result<List<AlbumFull>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                if (!authRepository.ensureValidToken()) {
-                    return@withContext Result.failure(Exception("Token refresh failed"))
-                }
-
-                val response = spotifyApi.search(
-                    query = query,
-                    type = "album",
-                    limit = limit
-                )
-
-                val albums = response.albums?.items ?: emptyList()
-                preferences.saveSearchQuery(query)
-
-                Log.d("MusicRepository", "Found ${albums.size} albums")
-                Result.success(albums)
-
-            } catch (e: Exception) {
-                Log.e("MusicRepository", "Album search failed", e)
-                Result.failure(e)
-            }
-        }
-    }
-
-    /**
-     * Поиск треков, альбомов И артистов одновременно
-     */
-    suspend fun searchAll(query: String, limit: Int = 20): Result<Triple<List<Track>, List<AlbumFull>, List<ArtistFull>>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                if (!authRepository.ensureValidToken()) {
-                    return@withContext Result.failure(Exception("Token refresh failed"))
-                }
-
-                val response = spotifyApi.search(
-                    query = query,
-                    type = "track,album,artist",
-                    limit = limit
-                )
-
-                val tracks = response.tracks?.items ?: emptyList()
-                val albums = response.albums?.items ?: emptyList()
-                val artists = response.artists?.items ?: emptyList()
-                preferences.saveSearchQuery(query)
-
-                Log.d("MusicRepository", "Found ${tracks.size} tracks, ${albums.size} albums, ${artists.size} artists")
-                Result.success(Triple(tracks, albums, artists))
-
-            } catch (e: Exception) {
-                Log.e("MusicRepository", "Search failed", e)
-                Result.failure(e)
-            }
-        }
-    }
-
-    suspend fun getSavedTracksFromSpotify(limit: Int = 50): Result<List<Track>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                if (!authRepository.ensureValidToken()) {
-                    return@withContext Result.failure(Exception("Token refresh failed"))
-                }
-
-                val response = spotifyApi.getSavedTracks(limit = limit)
-                val tracks = response.items.map { it.track }
-
-                Log.d("MusicRepository", "Loaded ${tracks.size} saved tracks from Spotify")
+                Log.d("MusicRepository", "Found ${tracks.size} Jamendo tracks")
                 Result.success(tracks)
 
             } catch (e: Exception) {
-                Log.e("MusicRepository", "Failed to load saved tracks", e)
+                Log.e("MusicRepository", "Jamendo search failed", e)
                 Result.failure(e)
             }
         }
     }
 
     // ========================================
-    // LOCAL DATABASE METHODS (ROOM - 7 баллов)
+    // COMBINED SEARCH
     // ========================================
 
     /**
-     * Получить все локально сохраненные треки (Flow для автообновления UI)
+     * Поиск в обоих источниках одновременно
      */
-    fun getLocalLikedTracks(): Flow<List<Track>> {
+    suspend fun searchBoth(query: String): Result<Pair<List<UniversalTrack>, List<UniversalTrack>>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val itunesDeferred = async { searchITunes(query) }
+                val jamendoDeferred = async { searchJamendo(query) }
+
+                val itunesResult = itunesDeferred.await()
+                val jamendoResult = jamendoDeferred.await()
+
+                val itunesTracks = itunesResult.getOrNull() ?: emptyList()
+                val jamendoTracks = jamendoResult.getOrNull() ?: emptyList()
+
+                Log.d("MusicRepository", "Combined: ${itunesTracks.size} iTunes + ${jamendoTracks.size} Jamendo")
+                Result.success(Pair(itunesTracks, jamendoTracks))
+
+            } catch (e: Exception) {
+                Log.e("MusicRepository", "Combined search failed", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    // ========================================
+    // LOCAL DATABASE (Room)
+    // ========================================
+
+    fun getLocalLikedTracks(): Flow<List<UniversalTrack>> {
         return trackDao.getAllLikedTracks().map { entities ->
-            entities.map { it.toTrack() }
+            entities.map { it.toTrack().toUniversalTrack() }
         }
     }
 
-    /**
-     * Добавить трек в локальное избранное
-     */
-    suspend fun addTrackToLocal(track: Track): Result<Unit> {
+    suspend fun addTrackToLocal(track: UniversalTrack): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                trackDao.insertTrack(track.toEntity())
-                Log.d("MusicRepository", "Track added to local: ${track.name}")
+                // Конвертируем в старую модель для Room
+                val oldTrack = track.toOldTrackModel()
+                trackDao.insertTrack(oldTrack.toEntity())
+                Log.d("MusicRepository", "Added to local: ${track.name}")
                 Result.success(Unit)
             } catch (e: Exception) {
-                Log.e("MusicRepository", "Failed to add track to local", e)
+                Log.e("MusicRepository", "Failed to add track", e)
                 Result.failure(e)
             }
         }
     }
 
-    /**
-     * Удалить трек из локального избранного
-     */
     suspend fun removeTrackFromLocal(trackId: String): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
                 trackDao.deleteTrackById(trackId)
-                Log.d("MusicRepository", "Track removed from local: $trackId")
+                Log.d("MusicRepository", "Removed from local: $trackId")
                 Result.success(Unit)
             } catch (e: Exception) {
-                Log.e("MusicRepository", "Failed to remove track from local", e)
+                Log.e("MusicRepository", "Failed to remove track", e)
                 Result.failure(e)
             }
         }
     }
 
-    /**
-     * Проверить, есть ли трек в локальном избранном
-     */
     suspend fun isTrackLikedLocally(trackId: String): Boolean {
         return withContext(Dispatchers.IO) {
             trackDao.isTrackLiked(trackId)
         }
     }
 
-    /**
-     * Переключить избранное (добавить/удалить)
-     */
-    suspend fun toggleLocalLike(track: Track): Result<Boolean> {
+    suspend fun toggleLocalLike(track: UniversalTrack): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val isLiked = trackDao.isTrackLiked(track.id)
-
+                val isLiked = isTrackLikedLocally(track.id)
                 if (isLiked) {
-                    trackDao.deleteTrackById(track.id)
-                    Log.d("MusicRepository", "Track unliked: ${track.name}")
-                    Result.success(false) // теперь НЕ в избранном
+                    removeTrackFromLocal(track.id)
+                    Result.success(false)
                 } else {
-                    trackDao.insertTrack(track.toEntity())
-                    Log.d("MusicRepository", "Track liked: ${track.name}")
-                    Result.success(true) // теперь В избранном
+                    addTrackToLocal(track)
+                    Result.success(true)
                 }
             } catch (e: Exception) {
-                Log.e("MusicRepository", "Failed to toggle like", e)
                 Result.failure(e)
             }
         }
     }
 
-    /**
-     * Получить количество избранных треков
-     */
     suspend fun getLikedTracksCount(): Int {
         return withContext(Dispatchers.IO) {
             trackDao.getLikedTracksCount()
@@ -270,7 +180,7 @@ class MusicRepository(
     }
 
     // ========================================
-    // SEARCH HISTORY (SharedPreferences - 4 балла)
+    // SEARCH HISTORY
     // ========================================
 
     fun getSearchHistory(): List<String> {
@@ -282,4 +192,48 @@ class MusicRepository(
     }
 }
 
+/**
+ * Конвертер для обратной совместимости с Room
+ */
+private fun UniversalTrack.toOldTrackModel(): com.example.hearo.data.model.spotify.Track {
+    return com.example.hearo.data.model.spotify.Track(
+        id = id,
+        name = name,
+        artists = listOf(
+            com.example.hearo.data.model.spotify.Artist(
+                id = "0",
+                name = artistName,
+                externalUrls = null
+            )
+        ),
+        album = com.example.hearo.data.model.spotify.Album(
+            id = "0",
+            name = albumName,
+            images = listOfNotNull(
+                imageUrl?.let {
+                    com.example.hearo.data.model.spotify.SpotifyImage(it, 600, 600)
+                }
+            ),
+            releaseDate = null
+        ),
+        durationMs = durationMs,
+        previewUrl = previewUrl,
+        uri = "track:$id",
+        externalUrls = null
+    )
+}
 
+private fun com.example.hearo.data.model.spotify.Track.toUniversalTrack(): UniversalTrack {
+    return UniversalTrack(
+        id = id,
+        name = name,
+        artistName = artists.firstOrNull()?.name ?: "Unknown",
+        albumName = album.name,
+        imageUrl = album.images.firstOrNull()?.url,
+        previewUrl = previewUrl,
+        downloadUrl = null,
+        durationMs = durationMs,
+        source = MusicSource.ITUNES,
+        canDownloadFull = false
+    )
+}

@@ -1,12 +1,13 @@
 package com.example.hearo.ui.player
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.hearo.data.model.spotify.Track
-import com.example.hearo.data.preferences.AppPreferences
-import com.example.hearo.data.repository.AuthRepository
+import com.example.hearo.data.model.UniversalTrack
 import com.example.hearo.data.repository.MusicRepository
+import com.example.hearo.utils.DownloadProgress
+import com.example.hearo.utils.TrackDownloadManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,28 +16,19 @@ import kotlinx.coroutines.launch
 
 class PlayerViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val authRepository = AuthRepository(AppPreferences(application))
-    private val musicRepository = MusicRepository(application, authRepository)
+    private val musicRepository = MusicRepository(application)
 
     val mediaPlayer = MediaPlayerManager()
 
-    // Текущий трек
-    private val _currentTrack = MutableStateFlow<Track?>(null)
-    val currentTrack: StateFlow<Track?> = _currentTrack
+    // ⭐ Download Manager
+    private val downloadManager = TrackDownloadManager(application)
+    val downloadProgress: StateFlow<DownloadProgress> = downloadManager.downloadProgress
 
-    // Очередь треков (для Previous/Next)
-    private val _playlist = MutableStateFlow<List<Track>>(emptyList())
-    private var currentTrackIndex = 0
+    private val _currentTrack = MutableStateFlow<UniversalTrack?>(null)
+    val currentTrack: StateFlow<UniversalTrack?> = _currentTrack
 
-    // Состояния
     private val _isLiked = MutableStateFlow(false)
     val isLiked: StateFlow<Boolean> = _isLiked
-
-    private val _isShuffle = MutableStateFlow(false)
-    val isShuffle: StateFlow<Boolean> = _isShuffle
-
-    private val _repeatMode = MutableStateFlow(RepeatMode.OFF)
-    val repeatMode: StateFlow<RepeatMode> = _repeatMode
 
     private val _currentPosition = MutableStateFlow(0)
     val currentPosition: StateFlow<Int> = _currentPosition
@@ -44,45 +36,44 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private val _duration = MutableStateFlow(0)
     val duration: StateFlow<Int> = _duration
 
+    private val _showMessage = MutableStateFlow<String?>(null)
+    val showMessage: StateFlow<String?> = _showMessage
+
     private var progressUpdateJob: Job? = null
 
     /**
      * Установить и воспроизвести трек
      */
-    fun setTrack(track: Track, playlist: List<Track> = listOf(track)) {
-        _currentTrack.value = track
-        _playlist.value = playlist
-        currentTrackIndex = playlist.indexOf(track).takeIf { it >= 0 } ?: 0
+    fun setTrack(track: UniversalTrack) {
+        Log.d("PlayerViewModel", "=== SET TRACK ===")
+        Log.d("PlayerViewModel", "Track: ${track.name}")
+        Log.d("PlayerViewModel", "Source: ${track.source}")
+        Log.d("PlayerViewModel", "Preview URL: ${track.previewUrl}")
+        Log.d("PlayerViewModel", "Can download full: ${track.canDownloadFull}")
 
-        // Проверяем, в избранном ли трек
+        _currentTrack.value = track
         checkIfLiked(track.id)
 
-        // Начинаем воспроизведение
-        playCurrentTrack()
-    }
-
-    /**
-     * Воспроизвести текущий трек
-     */
-    private fun playCurrentTrack() {
-        val track = _currentTrack.value ?: return
-
-        track.previewUrl?.let { url ->
-            mediaPlayer.play(url)
-
-            // Устанавливаем длительность (preview всегда ~30 сек, но берем реальную)
-            viewModelScope.launch {
-                // Ждем немного пока mediaPlayer подготовится
-                delay(500)
-                val realDuration = mediaPlayer.getDuration()
-                _duration.value = if (realDuration > 0) realDuration else 30000
-            }
-
-            startProgressUpdate()
-        } ?: run {
-            // Нет preview URL
-            mediaPlayer.stop()
+        // Проверяем наличие preview URL
+        if (track.previewUrl.isNullOrEmpty()) {
+            Log.e("PlayerViewModel", "❌ No preview URL!")
+            _showMessage.value = "No preview available for this track"
+            return
         }
+
+        // Начинаем воспроизведение
+        Log.d("PlayerViewModel", "Starting playback...")
+        mediaPlayer.play(track.previewUrl)
+
+        // Устанавливаем длительность
+        viewModelScope.launch {
+            delay(500)
+            val realDuration = mediaPlayer.getDuration()
+            _duration.value = if (realDuration > 0) realDuration else track.durationMs
+            Log.d("PlayerViewModel", "Duration set: ${_duration.value}ms")
+        }
+
+        startProgressUpdate()
     }
 
     /**
@@ -99,76 +90,18 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     /**
-     * Следующий трек
-     */
-    fun playNext() {
-        val playlist = _playlist.value
-        if (playlist.isEmpty()) return
-
-        when (_repeatMode.value) {
-            RepeatMode.ONE -> {
-                // Повторяем текущий трек
-                playCurrentTrack()
-            }
-            else -> {
-                // Переходим к следующему
-                currentTrackIndex = if (_isShuffle.value) {
-                    // Случайный трек
-                    playlist.indices.random()
-                } else {
-                    // Следующий по порядку
-                    (currentTrackIndex + 1) % playlist.size
-                }
-
-                _currentTrack.value = playlist[currentTrackIndex]
-                checkIfLiked(playlist[currentTrackIndex].id)
-                playCurrentTrack()
-            }
-        }
-    }
-
-    /**
-     * Предыдущий трек
+     * Previous = перемотка в начало
      */
     fun playPrevious() {
-        val playlist = _playlist.value
-        if (playlist.isEmpty()) return
-
-        // Если прошло более 3 секунд - перематываем в начало
-        if (mediaPlayer.getCurrentPosition() > 3000) {
-            mediaPlayer.seekTo(0)
-            _currentPosition.value = 0
-            return
-        }
-
-        // Иначе переходим к предыдущему треку
-        currentTrackIndex = if (currentTrackIndex > 0) {
-            currentTrackIndex - 1
-        } else {
-            playlist.size - 1
-        }
-
-        _currentTrack.value = playlist[currentTrackIndex]
-        checkIfLiked(playlist[currentTrackIndex].id)
-        playCurrentTrack()
+        mediaPlayer.seekTo(0)
+        _currentPosition.value = 0
     }
 
     /**
-     * Переключить Shuffle
+     * Next = сообщение
      */
-    fun toggleShuffle() {
-        _isShuffle.value = !_isShuffle.value
-    }
-
-    /**
-     * Переключить Repeat
-     */
-    fun toggleRepeat() {
-        _repeatMode.value = when (_repeatMode.value) {
-            RepeatMode.OFF -> RepeatMode.ALL
-            RepeatMode.ALL -> RepeatMode.ONE
-            RepeatMode.ONE -> RepeatMode.OFF
-        }
+    fun playNext() {
+        _showMessage.value = "Playing preview mode"
     }
 
     /**
@@ -184,7 +117,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
      */
     fun toggleLike() {
         val track = _currentTrack.value ?: return
-
         viewModelScope.launch {
             musicRepository.toggleLocalLike(track)
             checkIfLiked(track.id)
@@ -192,17 +124,49 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     /**
-     * Проверить, в избранном ли трек
+     * Скачать трек
      */
-    private fun checkIfLiked(trackId: String) {
-        viewModelScope.launch {
-            val isLiked = musicRepository.isTrackLikedLocally(trackId)
-            _isLiked.value = isLiked
+    fun downloadTrack() {
+        val track = _currentTrack.value ?: return
+
+        // Если доступен полный трек (Jamendo)
+        if (track.canDownloadFull && !track.downloadUrl.isNullOrEmpty()) {
+            Log.d("PlayerViewModel", "✅ Downloading FULL track from Jamendo")
+            downloadManager.downloadTrack(
+                url = track.downloadUrl,
+                trackName = track.name,
+                artistName = track.artistName,
+                isFull = true
+            )
+            _showMessage.value = "Downloading full track..."
+        }
+        // Иначе скачиваем preview
+        else if (!track.previewUrl.isNullOrEmpty()) {
+            Log.d("PlayerViewModel", "⚠️ Downloading 30-90s preview")
+            downloadManager.downloadTrack(
+                url = track.previewUrl,
+                trackName = track.name,
+                artistName = track.artistName,
+                isFull = false
+            )
+            _showMessage.value = "Downloading preview..."
+        } else {
+            _showMessage.value = "No download available"
         }
     }
 
+    private fun checkIfLiked(trackId: String) {
+        viewModelScope.launch {
+            _isLiked.value = musicRepository.isTrackLikedLocally(trackId)
+        }
+    }
+
+    fun clearMessage() {
+        _showMessage.value = null
+    }
+
     /**
-     * Обновление прогресса воспроизведения
+     * Обновление прогресса
      */
     private fun startProgressUpdate() {
         stopProgressUpdate()
@@ -211,15 +175,14 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
                 val currentPos = mediaPlayer.getCurrentPosition()
                 _currentPosition.value = currentPos
 
-                // Проверяем конец трека
                 val duration = mediaPlayer.getDuration()
                 if (duration > 0 && currentPos >= duration - 100) {
-                    // Трек закончился
-                    handleTrackCompletion()
+                    stopProgressUpdate()
+                    _currentPosition.value = 0
                     break
                 }
 
-                delay(100) // Обновляем каждые 100мс
+                delay(100)
             }
         }
     }
@@ -229,47 +192,11 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         progressUpdateJob = null
     }
 
-    /**
-     * Обработка завершения трека
-     */
-    private fun handleTrackCompletion() {
-        when (_repeatMode.value) {
-            RepeatMode.ONE -> {
-                // Повторяем текущий
-                playCurrentTrack()
-            }
-            RepeatMode.ALL -> {
-                // Переходим к следующему
-                playNext()
-            }
-            RepeatMode.OFF -> {
-                // Переходим к следующему если не последний
-                val playlist = _playlist.value
-                if (currentTrackIndex < playlist.size - 1) {
-                    playNext()
-                } else {
-                    // Это был последний трек - останавливаемся
-                    stopProgressUpdate()
-                    _currentPosition.value = 0
-                }
-            }
-        }
-    }
-
     override fun onCleared() {
         super.onCleared()
+        Log.d("PlayerViewModel", "ViewModel cleared")
         mediaPlayer.release()
+        downloadManager.release()
         stopProgressUpdate()
     }
 }
-
-/**
- * Режимы повтора
- */
-enum class RepeatMode {
-    OFF,    // Не повторять
-    ALL,    // Повторять весь плейлист
-    ONE     // Повторять один трек
-}
-
-

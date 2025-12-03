@@ -7,24 +7,18 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.hearo.R
-import com.example.hearo.data.preferences.AppPreferences
-import com.example.hearo.data.repository.AuthRepository
 import com.example.hearo.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
-    private lateinit var authRepository: AuthRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        // Инициализируем AuthRepository
-        authRepository = AuthRepository(AppPreferences(this))
 
         setupNavigation()
     }
@@ -34,24 +28,13 @@ class MainActivity : AppCompatActivity() {
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        // Проверяем авторизацию и устанавливаем стартовый экран
-        val startDestination = if (authRepository.isLoggedIn()) {
-            R.id.homeFragment
-        } else {
-            R.id.loginFragment
-        }
-
-        val navGraph = navController.navInflater.inflate(R.navigation.nav_graph)
-        navGraph.setStartDestination(startDestination)
-        navController.graph = navGraph
-
-        // Связываем Bottom Navigation
+        // Связываем Bottom Navigation с NavController
         binding.bottomNavigation.setupWithNavController(navController)
 
-        // Скрываем Bottom Navigation на экране логина
+        // ⭐ Скрываем Bottom Navigation на Login и Player экранах
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.loginFragment -> {
+                R.id.loginFragment, R.id.playerFragment -> {
                     binding.bottomNavigation.visibility = View.GONE
                 }
                 else -> {

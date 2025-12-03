@@ -71,7 +71,40 @@
             android:text="Artists" />
 
     </com.google.android.material.tabs.TabLayout>
+    <!-- ⭐ НОВОЕ: Фильтр источников -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/sourceChipGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        app:singleSelection="true"
+        app:layout_constraintTop_toBottomOf="@id/searchTypeTabLayout"
+        app:layout_constraintStart_toStartOf="parent">
 
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipAll"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="All"
+            android:checked="true" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSpotify"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="iTunes" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipJamendo"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Jamendo (Free)" />
+
+    </com.google.android.material.chip.ChipGroup>
     <!-- Progress Bar -->
     <ProgressBar
         android:id="@+id/progressBar"

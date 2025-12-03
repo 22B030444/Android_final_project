@@ -6,19 +6,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.hearo.data.model.spotify.Track
-import com.example.hearo.data.preferences.AppPreferences
-import com.example.hearo.data.repository.AuthRepository
+import com.example.hearo.data.model.UniversalTrack
 import com.example.hearo.data.repository.MusicRepository
 import kotlinx.coroutines.launch
 
 class LikedSongsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val authRepository = AuthRepository(AppPreferences(application))
-    private val musicRepository = MusicRepository(application, authRepository)
+    private val musicRepository = MusicRepository(application)
 
     // Автоматически обновляется когда меняется база данных
-    val likedTracks: LiveData<List<Track>> = musicRepository.getLocalLikedTracks().asLiveData()
+    val likedTracks: LiveData<List<UniversalTrack>> = musicRepository.getLocalLikedTracks().asLiveData()
 
     private val _likedTracksCount = MutableLiveData<Int>()
     val likedTracksCount: LiveData<Int> = _likedTracksCount
@@ -30,7 +27,7 @@ class LikedSongsViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * Удалить трек из избранного
      */
-    fun removeTrack(track: Track) {
+    fun removeTrack(track: UniversalTrack) {
         viewModelScope.launch {
             musicRepository.removeTrackFromLocal(track.id)
             loadTracksCount()
@@ -40,7 +37,7 @@ class LikedSongsViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * Переключить избранное
      */
-    fun toggleLike(track: Track) {
+    fun toggleLike(track: UniversalTrack) {
         viewModelScope.launch {
             musicRepository.toggleLocalLike(track)
             loadTracksCount()
@@ -57,5 +54,3 @@ class LikedSongsViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 }
-
-

@@ -8,12 +8,11 @@ import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.hearo.R
 import com.example.hearo.databinding.FragmentLikedSongsBinding
-import com.example.hearo.ui.adapter.TrackAdapter
+import com.example.hearo.ui.adapter.UniversalTrackAdapter
 
 class LikedSongsFragment : Fragment() {
 
@@ -23,16 +22,25 @@ class LikedSongsFragment : Fragment() {
     private val viewModel: LikedSongsViewModel by viewModels()
 
     private val adapter by lazy {
-        TrackAdapter(
+        UniversalTrackAdapter(
             onTrackClick = { track ->
-                // ⭐️ ИСПОЛЬЗУЕМ BUNDLE ВМЕСТО SafeArgs
+                // Проверяем наличие preview
+                if (track.previewUrl.isNullOrEmpty()) {
+                    Toast.makeText(
+                        requireContext(),
+                        "No preview available for this track",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@UniversalTrackAdapter
+                }
+
+                // Переход к плееру
                 val bundle = bundleOf("track" to track)
                 findNavController().navigate(
                     R.id.action_likedSongsFragment_to_playerFragment,
                     bundle
                 )
             },
-                // TODO: Откроем PlayerFragment позже
             onFavoriteClick = { track ->
                 // Удаляем из избранного
                 viewModel.removeTrack(track)
@@ -123,5 +131,3 @@ class LikedSongsFragment : Fragment() {
         _binding = null
     }
 }
-
-
