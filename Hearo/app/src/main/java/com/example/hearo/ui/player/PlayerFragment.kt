@@ -5,18 +5,20 @@ import android.os.Bundle
 import android.view.View
 import android.widget.SeekBar
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.hearo.R
-import com.example.hearo.data.model.spotify.Track
+import com.example.hearo.data.model.UniversalTrack
+import com.example.hearo.data.model.MusicSource
 import com.example.hearo.databinding.FragmentPlayerBinding
 import kotlinx.coroutines.launch
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import com.example.hearo.utils.DownloadProgress
 
 class PlayerFragment : Fragment() {
 
@@ -37,15 +39,16 @@ class PlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Получаем трек из Bundle
+        // ⭐ Получаем UniversalTrack через Bundle
         val track = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            arguments?.getParcelable("track", Track::class.java)
+            arguments?.getParcelable("track", UniversalTrack::class.java)
         } else {
             @Suppress("DEPRECATION")
             arguments?.getParcelable("track")
         }
 
         if (track == null) {
+            Toast.makeText(requireContext(), "Track not found", Toast.LENGTH_SHORT).show()
             findNavController().navigateUp()
             return
         }
@@ -53,24 +56,41 @@ class PlayerFragment : Fragment() {
         // Устанавливаем трек
         viewModel.setTrack(track)
 
-        setupUI(track)
         setupClickListeners()
         observeStates()
     }
 
-    private fun setupUI(track: Track) {
+    private fun setupUI(track: UniversalTrack) {
         binding.trackNameText.text = track.name
-        binding.artistNameText.text = track.artists.joinToString(", ") { it.name }
+        binding.artistNameText.text = track.artistName
 
-        val imageUrl = track.album.images.firstOrNull()?.url
+        // Загружаем обложку
         Glide.with(this)
-            .load(imageUrl)
+            .load(track.imageUrl)
             .placeholder(R.color.surface_dark)
             .error(R.color.surface_dark)
             .into(binding.albumCoverImage)
 
-        binding.totalTimeText.text = formatTime(30000)
-        binding.seekBar.max = 30000
+        // Устанавливаем длительность
+        val duration = if (track.canDownloadFull) {
+            track.durationMs // Полный трек
+        } else {
+            30000 // Preview 30 секунд
+        }
+
+        binding.totalTimeText.text = formatTime(duration)
+        binding.seekBar.max = duration
+
+        // ⭐ Меняем цвет кнопки Download для Jamendo треков
+        if (track.canDownloadFull && track.source == MusicSource.JAMENDO) {
+            binding.downloadButton.setColorFilter(
+                ContextCompat.getColor(requireContext(), R.color.jamendo_badge)
+            )
+        } else {
+            binding.downloadButton.setColorFilter(
+                ContextCompat.getColor(requireContext(), R.color.white)
+            )
+        }
     }
 
     private fun setupClickListeners() {
@@ -84,24 +104,24 @@ class PlayerFragment : Fragment() {
             viewModel.togglePlayPause()
         }
 
-        // Previous
+        // Previous (заглушка)
         binding.previousButton.setOnClickListener {
-            viewModel.playPrevious()
+            Toast.makeText(requireContext(), "Previous track - Coming soon", Toast.LENGTH_SHORT).show()
         }
 
-        // Next
+        // Next (заглушка)
         binding.nextButton.setOnClickListener {
-            viewModel.playNext()
+            Toast.makeText(requireContext(), "Next track - Coming soon", Toast.LENGTH_SHORT).show()
         }
 
-        // Shuffle
+        // Shuffle (заглушка)
         binding.shuffleButton.setOnClickListener {
-            viewModel.toggleShuffle()
+            Toast.makeText(requireContext(), "Shuffle - Coming soon", Toast.LENGTH_SHORT).show()
         }
 
-        // Repeat
+        // Repeat (заглушка)
         binding.repeatButton.setOnClickListener {
-            viewModel.toggleRepeat()
+            Toast.makeText(requireContext(), "Repeat - Coming soon", Toast.LENGTH_SHORT).show()
         }
 
         // Favorite
@@ -109,9 +129,9 @@ class PlayerFragment : Fragment() {
             viewModel.toggleLike()
         }
 
-        // Download (заглушка)
+        // ⭐ Download - теперь работает!
         binding.downloadButton.setOnClickListener {
-            Toast.makeText(requireContext(), "Download not available for preview", Toast.LENGTH_SHORT).show()
+            viewModel.downloadTrack()
         }
 
         // Menu (заглушка)
@@ -153,9 +173,6 @@ class PlayerFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.mediaPlayer.isPreparing.collect { isPreparing ->
                 // Можно показать индикатор загрузки
-                if (isPreparing) {
-                    // Показываем что идет загрузка
-                }
             }
         }
 
@@ -175,39 +192,6 @@ class PlayerFragment : Fragment() {
                     binding.favoriteButton.setImageResource(R.drawable.ic_favorite)
                 } else {
                     binding.favoriteButton.setImageResource(R.drawable.ic_favorite_border)
-                }
-            }
-        }
-
-        // Shuffle
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.isShuffle.collect { isShuffle ->
-                if (isShuffle) {
-                    binding.shuffleButton.setColorFilter(
-                        ContextCompat.getColor(requireContext(), R.color.purple_primary)
-                    )
-                } else {
-                    binding.shuffleButton.setColorFilter(
-                        ContextCompat.getColor(requireContext(), R.color.white)
-                    )
-                }
-            }
-        }
-
-        // Repeat
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.repeatMode.collect { mode ->
-                when (mode) {
-                    RepeatMode.OFF -> {
-                        binding.repeatButton.setColorFilter(
-                            ContextCompat.getColor(requireContext(), R.color.white)
-                        )
-                    }
-                    RepeatMode.ALL, RepeatMode.ONE -> {
-                        binding.repeatButton.setColorFilter(
-                            ContextCompat.getColor(requireContext(), R.color.purple_primary)
-                        )
-                    }
                 }
             }
         }
@@ -238,6 +222,41 @@ class PlayerFragment : Fragment() {
                 }
             }
         }
+
+        // ⭐ Прогресс скачивания
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.downloadProgress.collect { progress ->
+                when (progress) {
+                    is DownloadProgress.Downloading -> {
+                        // Можно показать прогресс
+                    }
+                    is DownloadProgress.Success -> {
+                        Toast.makeText(
+                            requireContext(),
+                            "Download completed!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    is DownloadProgress.Failed -> {
+                        Toast.makeText(
+                            requireContext(),
+                            "Download failed: ${progress.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    else -> {}
+                }
+            }
+        }
+
+        // ⭐ Сообщения от ViewModel
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.showMessage.collect { message ->
+                message?.let {
+                    Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun formatTime(milliseconds: Int): String {
@@ -257,5 +276,3 @@ class PlayerFragment : Fragment() {
         _binding = null
     }
 }
-
-

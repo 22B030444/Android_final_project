@@ -32,4 +32,5 @@ object Constants {
     const val KEY_ACCESS_TOKEN = "access_token"
     const val KEY_REFRESH_TOKEN = "refresh_token"
     const val KEY_TOKEN_EXPIRY = "token_expiry"
+    const val JAMENDO_CLIENT_ID = "7337c84f"
 }
