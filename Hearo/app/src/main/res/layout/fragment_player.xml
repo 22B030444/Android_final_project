@@ -193,17 +193,18 @@
             android:contentDescription="Previous" />
 
         <!-- Play/Pause Button -->
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <ImageButton
             android:id="@+id/playPauseButton"
             android:layout_width="72dp"
             android:layout_height="72dp"
-            android:layout_marginStart="24dp"
-            android:layout_marginEnd="24dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:background="@drawable/player_gradient"
             android:src="@drawable/ic_play"
-            app:tint="@color/white"
-            app:backgroundTint="@color/purple_primary"
-            app:fabSize="normal"
-            android:contentDescription="Play/Pause" />
+            android:scaleType="center"
+            android:padding="16dp"
+            android:foreground="?attr/selectableItemBackgroundBorderless" />
+
 
         <!-- Next Button -->
         <ImageView

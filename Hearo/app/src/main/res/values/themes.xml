@@ -1,9 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme -->
+
     <style name="Base.Theme.Hearo" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/purple_primary</item>
         <item name="colorPrimaryVariant">@color/purple_dark</item>
-
     </style>
 
     <style name="Theme.Hearo" parent="Base.Theme.Hearo" />
@@ -11,4 +10,5 @@
     <style name="Theme.Hearo.Splash" parent="Theme.Material3.Dark.NoActionBar">
         <item name="android:windowBackground">@drawable/background_gradient</item>
     </style>
+
 </resources>
