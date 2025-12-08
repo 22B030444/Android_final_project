@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.hearo.data.model.MusicSource
 import com.example.hearo.data.model.UniversalArtist
 import com.example.hearo.data.model.UniversalTrack
 import com.example.hearo.data.model.UiState
@@ -28,6 +29,9 @@ class ArtistDetailViewModel(application: Application) : AndroidViewModel(applica
     private val _likedTracksIds = MutableLiveData<Set<String>>()
     val likedTracksIds: LiveData<Set<String>> = _likedTracksIds
 
+    private val _albumImageUrl = MutableLiveData<String?>()
+    val albumImageUrl: LiveData<String?> = _albumImageUrl
+
     private var currentArtist: UniversalArtist? = null
     private var currentTracks: List<UniversalTrack> = emptyList()
 
@@ -40,24 +44,42 @@ class ArtistDetailViewModel(application: Application) : AndroidViewModel(applica
             _artistState.value = UiState.Loading
             _tracksState.value = UiState.Loading
 
-            // Check if artist is followed
             _isFollowing.value = musicRepository.isArtistFollowed(artistId)
 
             musicRepository.getArtistDetails(artistId)
                 .onSuccess { (artist, tracks) ->
+                    val trackImageUrl = tracks.firstOrNull()?.imageUrl
+
+                    // Пытаемся получить фото артиста
+                    val artistImageUrl = if (artistName != null) {
+                        musicRepository.getArtistImage(artistName)
+                    } else {
+                        artist?.name?.let { musicRepository.getArtistImage(it) }
+                    }
+
+                    _albumImageUrl.value = artistImageUrl ?: trackImageUrl
+
                     if (artist != null) {
-                        currentArtist = artist
-                        _artistState.value = UiState.Success(artist)
+                        val updatedArtist = UniversalArtist(
+                            id = artist.id,
+                            name = artist.name,
+                            imageUrl = artistImageUrl ?: trackImageUrl,
+                            followersCount = artist.followersCount,
+                            monthlyListeners = artist.monthlyListeners,
+                            genres = artist.genres,
+                            source = artist.source
+                        )
+                        currentArtist = updatedArtist
+                        _artistState.value = UiState.Success(updatedArtist)
                     } else if (artistName != null) {
-                        // Create temporary artist from passed name
                         val tempArtist = UniversalArtist(
                             id = artistId,
                             name = artistName,
-                            imageUrl = null,
+                            imageUrl = artistImageUrl ?: trackImageUrl,
                             followersCount = 0,
                             monthlyListeners = null,
                             genres = emptyList(),
-                            source = com.example.hearo.data.model.MusicSource.ITUNES
+                            source = MusicSource.ITUNES
                         )
                         currentArtist = tempArtist
                         _artistState.value = UiState.Success(tempArtist)
@@ -70,11 +92,53 @@ class ArtistDetailViewModel(application: Application) : AndroidViewModel(applica
                         _tracksState.value = UiState.Success(tracks)
                     }
 
-                    Log.d("ArtistDetailVM", "Loaded artist: ${artist?.name}, ${tracks.size} tracks")
+                    Log.d("ArtistDetailVM", "Loaded artist: ${artist?.name}, ${tracks.size} tracks, image: $artistImageUrl")
                 }
                 .onFailure { error ->
                     Log.e("ArtistDetailVM", "Failed to load artist", error)
                     _artistState.value = UiState.Error(error.message ?: "Failed to load artist")
+                    _tracksState.value = UiState.Error(error.message ?: "Failed to load tracks")
+                }
+        }
+    }
+
+    /**
+     * Загрузка треков конкретного альбома
+     */
+    fun loadAlbumDetails(albumId: String, albumName: String? = null) {
+        viewModelScope.launch {
+            _artistState.value = UiState.Loading
+            _tracksState.value = UiState.Loading
+
+            musicRepository.getAlbumDetails(albumId)
+                .onSuccess { (album, tracks) ->
+                    _albumImageUrl.value = album?.imageUrl ?: tracks.firstOrNull()?.imageUrl
+
+                    // Создаём "артиста" из данных альбома для отображения в хедере
+                    val albumAsArtist = UniversalArtist(
+                        id = albumId,
+                        name = album?.name ?: albumName ?: "Unknown Album",
+                        imageUrl = album?.imageUrl ?: tracks.firstOrNull()?.imageUrl,
+                        followersCount = 0,
+                        monthlyListeners = "${album?.totalTracks ?: tracks.size} tracks",
+                        genres = listOf(album?.artistName ?: ""),
+                        source = MusicSource.ITUNES
+                    )
+                    currentArtist = albumAsArtist
+                    _artistState.value = UiState.Success(albumAsArtist)
+
+                    currentTracks = tracks
+                    if (tracks.isEmpty()) {
+                        _tracksState.value = UiState.Error("No songs found")
+                    } else {
+                        _tracksState.value = UiState.Success(tracks)
+                    }
+
+                    Log.d("ArtistDetailVM", "Loaded album: ${album?.name}, ${tracks.size} tracks")
+                }
+                .onFailure { error ->
+                    Log.e("ArtistDetailVM", "Failed to load album", error)
+                    _artistState.value = UiState.Error(error.message ?: "Failed to load album")
                     _tracksState.value = UiState.Error(error.message ?: "Failed to load tracks")
                 }
         }
