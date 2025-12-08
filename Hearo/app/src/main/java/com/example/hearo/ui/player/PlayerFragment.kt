@@ -39,7 +39,7 @@ class PlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ⭐ Получаем UniversalTrack через Bundle
+        // Получаем трек и список треков
         val track = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arguments?.getParcelable("track", UniversalTrack::class.java)
         } else {
@@ -47,13 +47,26 @@ class PlayerFragment : Fragment() {
             arguments?.getParcelable("track")
         }
 
+        val trackList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arguments?.getParcelableArrayList("trackList", UniversalTrack::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            arguments?.getParcelableArrayList("trackList")
+        }
+
+        val currentIndex = arguments?.getInt("currentIndex", 0) ?: 0
+
         if (track == null) {
             Toast.makeText(requireContext(), "Track not found", Toast.LENGTH_SHORT).show()
             findNavController().navigateUp()
             return
         }
 
-        // Устанавливаем трек
+        // Устанавливаем список треков
+        if (!trackList.isNullOrEmpty()) {
+            viewModel.setTrackList(trackList, currentIndex)
+        }
+
         viewModel.setTrack(track)
 
         setupClickListeners()
@@ -64,24 +77,21 @@ class PlayerFragment : Fragment() {
         binding.trackNameText.text = track.name
         binding.artistNameText.text = track.artistName
 
-        // Загружаем обложку
         Glide.with(this)
             .load(track.imageUrl)
             .placeholder(R.color.surface_dark)
             .error(R.color.surface_dark)
             .into(binding.albumCoverImage)
 
-        // Устанавливаем длительность
         val duration = if (track.canDownloadFull) {
-            track.durationMs // Полный трек
+            track.durationMs
         } else {
-            30000 // Preview 30 секунд
+            30000
         }
 
         binding.totalTimeText.text = formatTime(duration)
         binding.seekBar.max = duration
 
-        // ⭐ Меняем цвет кнопки Download для Jamendo треков
         if (track.canDownloadFull && track.source == MusicSource.JAMENDO) {
             binding.downloadButton.setColorFilter(
                 ContextCompat.getColor(requireContext(), R.color.jamendo_badge)
@@ -94,52 +104,46 @@ class PlayerFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // Кнопка назад
         binding.backButton.setOnClickListener {
             findNavController().navigateUp()
         }
 
-        // Play/Pause
         binding.playPauseButton.setOnClickListener {
             viewModel.togglePlayPause()
         }
 
-        // Previous (заглушка)
+        // ⭐ Previous
         binding.previousButton.setOnClickListener {
-            Toast.makeText(requireContext(), "Previous track - Coming soon", Toast.LENGTH_SHORT).show()
+            viewModel.playPrevious()
         }
 
-        // Next (заглушка)
+        // ⭐ Next
         binding.nextButton.setOnClickListener {
-            Toast.makeText(requireContext(), "Next track - Coming soon", Toast.LENGTH_SHORT).show()
+            viewModel.playNext()
         }
 
-        // Shuffle (заглушка)
+        // ⭐ Shuffle
         binding.shuffleButton.setOnClickListener {
-            Toast.makeText(requireContext(), "Shuffle - Coming soon", Toast.LENGTH_SHORT).show()
+            viewModel.toggleShuffle()
         }
 
-        // Repeat (заглушка)
+        // ⭐ Repeat
         binding.repeatButton.setOnClickListener {
-            Toast.makeText(requireContext(), "Repeat - Coming soon", Toast.LENGTH_SHORT).show()
+            viewModel.toggleRepeat()
         }
 
-        // Favorite
         binding.favoriteButton.setOnClickListener {
             viewModel.toggleLike()
         }
 
-        // ⭐ Download - теперь работает!
         binding.downloadButton.setOnClickListener {
             viewModel.downloadTrack()
         }
 
-        // Menu (заглушка)
         binding.menuButton.setOnClickListener {
             Toast.makeText(requireContext(), "Menu", Toast.LENGTH_SHORT).show()
         }
 
-        // SeekBar
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
@@ -165,6 +169,48 @@ class PlayerFragment : Fragment() {
                     binding.playPauseButton.setImageResource(R.drawable.ic_pause)
                 } else {
                     binding.playPauseButton.setImageResource(R.drawable.ic_play)
+                }
+            }
+        }
+
+        // ⭐ Shuffle состояние
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.isShuffleEnabled.collect { isEnabled ->
+                if (isEnabled) {
+                    binding.shuffleButton.setColorFilter(
+                        ContextCompat.getColor(requireContext(), R.color.purple_primary)
+                    )
+                } else {
+                    binding.shuffleButton.setColorFilter(
+                        ContextCompat.getColor(requireContext(), R.color.white)
+                    )
+                }
+            }
+        }
+
+        // ⭐ Repeat режим
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.repeatMode.collect { mode ->
+                when (mode) {
+                    RepeatMode.OFF -> {
+                        binding.repeatButton.setImageResource(R.drawable.ic_repeat)
+                        binding.repeatButton.setColorFilter(
+                            ContextCompat.getColor(requireContext(), R.color.white)
+                        )
+                    }
+                    RepeatMode.ALL -> {
+                        binding.repeatButton.setImageResource(R.drawable.ic_repeat)
+                        binding.repeatButton.setColorFilter(
+                            ContextCompat.getColor(requireContext(), R.color.purple_primary)
+                        )
+                    }
+                    RepeatMode.ONE -> {
+                        binding.repeatButton.setImageResource(R.drawable.ic_repeat)
+                        binding.repeatButton.setColorFilter(
+                            ContextCompat.getColor(requireContext(), R.color.purple_primary)
+                        )
+                        // Можно добавить индикатор "1" на иконку
+                    }
                 }
             }
         }
@@ -223,7 +269,7 @@ class PlayerFragment : Fragment() {
             }
         }
 
-        // ⭐ Прогресс скачивания
+        // Прогресс скачивания
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.downloadProgress.collect { progress ->
                 when (progress) {
@@ -249,11 +295,12 @@ class PlayerFragment : Fragment() {
             }
         }
 
-        // ⭐ Сообщения от ViewModel
+        // Сообщения от ViewModel
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.showMessage.collect { message ->
                 message?.let {
                     Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                    viewModel.clearMessage()
                 }
             }
         }
@@ -267,7 +314,6 @@ class PlayerFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        // Приостанавливаем воспроизведение когда уходим с экрана
         viewModel.mediaPlayer.pause()
     }
 
@@ -276,3 +322,4 @@ class PlayerFragment : Fragment() {
         _binding = null
     }
 }
+

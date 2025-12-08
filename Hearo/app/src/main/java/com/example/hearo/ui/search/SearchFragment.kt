@@ -23,6 +23,9 @@ class SearchFragment : Fragment() {
 
     private val viewModel: SearchViewModel by viewModels()
 
+    // ⭐ Сохраняем текущий список результатов
+    private var currentSearchResults: List<com.example.hearo.data.model.UniversalTrack> = emptyList()
+
     private val trackAdapter by lazy {
         UniversalTrackAdapter(
             onTrackClick = { track ->
@@ -36,8 +39,16 @@ class SearchFragment : Fragment() {
                     return@UniversalTrackAdapter
                 }
 
-                // Переход к плееру
-                val bundle = bundleOf("track" to track)
+                // ⭐ Находим позицию кликнутого трека
+                val position = currentSearchResults.indexOf(track)
+
+                // ⭐ Передаем весь список и позицию
+                val bundle = bundleOf(
+                    "track" to track,
+                    "trackList" to ArrayList(currentSearchResults),
+                    "currentIndex" to position
+                )
+
                 findNavController().navigate(
                     R.id.action_searchFragment_to_playerFragment,
                     bundle
@@ -87,7 +98,6 @@ class SearchFragment : Fragment() {
                 R.id.chipJamendo -> viewModel.setFilter(SearchFilter.JAMENDO)
             }
 
-            // Повторяем поиск с новым фильтром
             val query = binding.searchEditText.text.toString()
             if (query.isNotEmpty()) {
                 viewModel.search(query)
@@ -103,6 +113,7 @@ class SearchFragment : Fragment() {
                     binding.recyclerView.visibility = View.GONE
                     binding.emptyStateText.visibility = View.VISIBLE
                     binding.emptyStateText.text = "Search for songs"
+                    currentSearchResults = emptyList()
                 }
 
                 is UiState.Loading -> {
@@ -118,9 +129,13 @@ class SearchFragment : Fragment() {
                         binding.recyclerView.visibility = View.GONE
                         binding.emptyStateText.visibility = View.VISIBLE
                         binding.emptyStateText.text = "No tracks found"
+                        currentSearchResults = emptyList()
                     } else {
                         binding.recyclerView.visibility = View.VISIBLE
                         binding.emptyStateText.visibility = View.GONE
+
+                        // ⭐ Сохраняем текущие результаты
+                        currentSearchResults = state.data
                         trackAdapter.submitList(state.data)
                     }
                 }
@@ -130,6 +145,7 @@ class SearchFragment : Fragment() {
                     binding.recyclerView.visibility = View.GONE
                     binding.emptyStateText.visibility = View.VISIBLE
                     binding.emptyStateText.text = "Error: ${state.message}"
+                    currentSearchResults = emptyList()
                 }
             }
         }
@@ -144,3 +160,4 @@ class SearchFragment : Fragment() {
         _binding = null
     }
 }
+
