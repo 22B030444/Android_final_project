@@ -318,7 +318,24 @@ class MusicRepository(context: Context) {
             trackDao.isTrackLiked(trackId)
         }
     }
-
+    /**
+     * Получить фото артиста через поиск
+     */
+    suspend fun getArtistImage(artistName: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Ищем артиста и берём обложку его первого альбома как фото
+                val response = itunesApi.searchAlbums(
+                    term = artistName,
+                    limit = 1
+                )
+                response.results.firstOrNull()?.getHighResArtwork()
+            } catch (e: Exception) {
+                Log.e("MusicRepository", "Failed to get artist image", e)
+                null
+            }
+        }
+    }
     suspend fun toggleLocalLike(track: UniversalTrack): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {

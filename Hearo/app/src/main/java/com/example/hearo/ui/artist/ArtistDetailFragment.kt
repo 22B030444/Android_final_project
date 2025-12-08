@@ -67,7 +67,6 @@ class ArtistDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Get artist from arguments
         val artist = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arguments?.getParcelable("artist", UniversalArtist::class.java)
         } else {
@@ -77,9 +76,12 @@ class ArtistDetailFragment : Fragment() {
 
         val artistId = arguments?.getString("artistId") ?: artist?.id
         val artistName = arguments?.getString("artistName") ?: artist?.name
+        val albumId = arguments?.getString("albumId")
+        val albumName = arguments?.getString("albumName")
+        val isAlbum = arguments?.getBoolean("isAlbum", false) ?: false
 
-        if (artistId == null) {
-            Toast.makeText(requireContext(), "Artist not found", Toast.LENGTH_SHORT).show()
+        if (artistId == null && albumId == null) {
+            Toast.makeText(requireContext(), "Not found", Toast.LENGTH_SHORT).show()
             findNavController().navigateUp()
             return
         }
@@ -89,11 +91,14 @@ class ArtistDetailFragment : Fragment() {
         setupClickListeners()
         observeStates()
 
-        // Set initial artist info if available
         artist?.let { setupArtistInfo(it) }
 
-        // Load artist details
-        viewModel.loadArtistDetails(artistId, artistName)
+        // Загружаем данные в зависимости от типа
+        if (isAlbum && albumId != null) {
+            viewModel.loadAlbumDetails(albumId, albumName)
+        } else if (artistId != null) {
+            viewModel.loadArtistDetails(artistId, artistName)
+        }
     }
 
     private fun setupToolbar() {
@@ -141,13 +146,14 @@ class ArtistDetailFragment : Fragment() {
         }
     }
 
-    private fun setupArtistInfo(artist: UniversalArtist) {
+    private fun setupArtistInfo(artist: UniversalArtist, albumImageUrl: String? = null) {
         binding.collapsingToolbar.title = artist.name.uppercase()
 
-        // Load artist image
-        if (!artist.imageUrl.isNullOrEmpty()) {
+        // Load artist/album image - use album cover from first track if available
+        val imageUrl = albumImageUrl ?: artist.imageUrl
+        if (!imageUrl.isNullOrEmpty()) {
             Glide.with(this)
-                .load(artist.imageUrl)
+                .load(imageUrl)
                 .placeholder(R.color.surface_dark)
                 .error(R.color.surface_dark)
                 .into(binding.artistHeaderImage)
@@ -163,13 +169,23 @@ class ArtistDetailFragment : Fragment() {
     }
 
     private fun observeStates() {
+        viewModel.albumImageUrl.observe(viewLifecycleOwner) { imageUrl ->
+            if (!imageUrl.isNullOrEmpty()) {
+                Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(R.color.surface_dark)
+                    .error(R.color.surface_dark)
+                    .into(binding.artistHeaderImage)
+            }
+        }
+
         viewModel.artistState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is UiState.Loading -> {
                     // Show loading in header area if needed
                 }
                 is UiState.Success -> {
-                    setupArtistInfo(state.data)
+                    setupArtistInfo(state.data, viewModel.albumImageUrl.value)
                 }
                 is UiState.Error -> {
                     // Keep existing data if any

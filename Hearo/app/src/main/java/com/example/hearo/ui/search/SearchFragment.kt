@@ -67,7 +67,8 @@ class SearchFragment : Fragment() {
                 "albumId" to album.id,
                 "albumName" to album.name,
                 "artistName" to album.artistName,
-                "artistId" to album.artistId
+                "artistId" to album.artistId,
+                "isAlbum" to true
             )
             findNavController().navigate(
                 R.id.action_searchFragment_to_artistDetailFragment,
