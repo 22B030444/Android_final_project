@@ -34,6 +34,9 @@
         <action
             android:id="@+id/action_searchFragment_to_playerFragment"
             app:destination="@id/playerFragment" />
+        <action
+            android:id="@+id/action_searchFragment_to_artistDetailFragment"
+            app:destination="@id/artistDetailFragment" />
     </fragment>
 
     <!-- Library Screen -->
@@ -56,7 +59,17 @@
             app:destination="@id/playerFragment" />
     </fragment>
 
-    <!-- Player Screen (БЕЗ аргументов - используем Bundle) -->
+    <!-- Artist Detail Screen -->
+    <fragment
+        android:id="@+id/artistDetailFragment"
+        android:name="com.example.hearo.ui.artist.ArtistDetailFragment"
+        android:label="Artist">
+        <action
+            android:id="@+id/action_artistDetailFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
+
+    <!-- Player Screen -->
     <fragment
         android:id="@+id/playerFragment"
         android:name="com.example.hearo.ui.player.PlayerFragment"

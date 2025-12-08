@@ -5,15 +5,20 @@ import android.util.Log
 import com.example.hearo.data.api.ITunesRetrofitClient
 import com.example.hearo.data.api.JamendoRetrofitClient
 import com.example.hearo.data.database.MusicDatabase
+import com.example.hearo.data.database.entity.AlbumEntity
+import com.example.hearo.data.database.entity.ArtistEntity
 import com.example.hearo.data.database.entity.toEntity
 import com.example.hearo.data.database.entity.toTrack
+import com.example.hearo.data.model.MusicSource
+import com.example.hearo.data.model.UniversalAlbum
+import com.example.hearo.data.model.UniversalArtist
 import com.example.hearo.data.model.UniversalTrack
+import com.example.hearo.data.model.toUniversalAlbum
+import com.example.hearo.data.model.toUniversalArtist
 import com.example.hearo.data.model.toUniversalTrack
 import com.example.hearo.data.preferences.AppPreferences
 import com.example.hearo.utils.Constants
 import kotlinx.coroutines.Dispatchers
-
-import com.example.hearo.data.model.MusicSource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -24,15 +29,15 @@ class MusicRepository(context: Context) {
     private val itunesApi = ITunesRetrofitClient.api
     private val jamendoApi = JamendoRetrofitClient.api
     private val preferences = AppPreferences(context)
-    private val trackDao = MusicDatabase.getDatabase(context).trackDao()
+    private val database = MusicDatabase.getDatabase(context)
+    private val trackDao = database.trackDao()
+    private val artistDao = database.artistDao()
+    private val albumDao = database.albumDao()
 
     // ========================================
-    // ITUNES SEARCH
+    // ITUNES SEARCH - TRACKS
     // ========================================
 
-    /**
-     * Поиск треков в iTunes
-     */
     suspend fun searchITunes(query: String, limit: Int = 25): Result<List<UniversalTrack>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -55,12 +60,174 @@ class MusicRepository(context: Context) {
     }
 
     // ========================================
+    // ITUNES SEARCH - ARTISTS
+    // ========================================
+
+    suspend fun searchArtists(query: String, limit: Int = 25): Result<List<UniversalArtist>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = itunesApi.searchArtists(
+                    term = query,
+                    limit = limit
+                )
+
+                val artists = response.results.map { it.toUniversalArtist() }
+                preferences.saveSearchQuery(query)
+
+                Log.d("MusicRepository", "Found ${artists.size} artists")
+                Result.success(artists)
+
+            } catch (e: Exception) {
+                Log.e("MusicRepository", "Artist search failed", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    // ========================================
+    // ITUNES SEARCH - ALBUMS
+    // ========================================
+
+    suspend fun searchAlbums(query: String, limit: Int = 25): Result<List<UniversalAlbum>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = itunesApi.searchAlbums(
+                    term = query,
+                    limit = limit
+                )
+
+                val albums = response.results.map { it.toUniversalAlbum() }
+                preferences.saveSearchQuery(query)
+
+                Log.d("MusicRepository", "Found ${albums.size} albums")
+                Result.success(albums)
+
+            } catch (e: Exception) {
+                Log.e("MusicRepository", "Album search failed", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    // ========================================
+    // ARTIST DETAILS - Get artist with songs
+    // ========================================
+
+    suspend fun getArtistDetails(artistId: String): Result<Pair<UniversalArtist?, List<UniversalTrack>>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = itunesApi.lookupArtist(
+                    artistId = artistId.toLong(),
+                    limit = 50
+                )
+
+                var artist: UniversalArtist? = null
+                val tracks = mutableListOf<UniversalTrack>()
+
+                response.results.forEach { result ->
+                    when (result.wrapperType) {
+                        "artist" -> {
+                            artist = UniversalArtist(
+                                id = result.artistId?.toString() ?: artistId,
+                                name = result.artistName ?: "Unknown Artist",
+                                imageUrl = null,
+                                followersCount = 0,
+                                monthlyListeners = null,
+                                genres = listOfNotNull(result.primaryGenreName),
+                                source = MusicSource.ITUNES
+                            )
+                        }
+                        "track" -> {
+                            tracks.add(
+                                UniversalTrack(
+                                    id = result.trackId?.toString() ?: "",
+                                    name = result.trackName ?: "",
+                                    artistName = result.artistName ?: "",
+                                    albumName = result.collectionName ?: "",
+                                    imageUrl = result.getHighResArtwork(),
+                                    previewUrl = result.previewUrl,
+                                    downloadUrl = null,
+                                    durationMs = result.trackTimeMillis ?: 30000,
+                                    source = MusicSource.ITUNES,
+                                    canDownloadFull = false
+                                )
+                            )
+                        }
+                    }
+                }
+
+                Log.d("MusicRepository", "Artist details: ${artist?.name}, ${tracks.size} tracks")
+                Result.success(Pair(artist, tracks))
+
+            } catch (e: Exception) {
+                Log.e("MusicRepository", "Get artist details failed", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    // ========================================
+    // ALBUM DETAILS - Get album with tracks
+    // ========================================
+
+    suspend fun getAlbumDetails(albumId: String): Result<Pair<UniversalAlbum?, List<UniversalTrack>>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = itunesApi.lookupAlbum(
+                    albumId = albumId.toLong()
+                )
+
+                var album: UniversalAlbum? = null
+                val tracks = mutableListOf<UniversalTrack>()
+
+                response.results.forEach { result ->
+                    when (result.wrapperType) {
+                        "collection" -> {
+                            album = UniversalAlbum(
+                                id = result.collectionId?.toString() ?: albumId,
+                                name = result.collectionName ?: "Unknown Album",
+                                artistName = result.artistName ?: "Unknown Artist",
+                                artistId = result.artistId?.toString(),
+                                imageUrl = result.getHighResArtwork(),
+                                releaseDate = result.releaseDate?.take(10),
+                                totalTracks = result.trackCount ?: 0,
+                                albumType = null,
+                                source = MusicSource.ITUNES
+                            )
+                        }
+                        "track" -> {
+                            tracks.add(
+                                UniversalTrack(
+                                    id = result.trackId?.toString() ?: "",
+                                    name = result.trackName ?: "",
+                                    artistName = result.artistName ?: "",
+                                    albumName = result.collectionName ?: "",
+                                    imageUrl = result.getHighResArtwork(),
+                                    previewUrl = result.previewUrl,
+                                    downloadUrl = null,
+                                    durationMs = result.trackTimeMillis ?: 30000,
+                                    source = MusicSource.ITUNES,
+                                    canDownloadFull = false
+                                )
+                            )
+                        }
+                    }
+                }
+
+                Log.d("MusicRepository", "Album details: ${album?.name}, ${tracks.size} tracks")
+                Result.success(Pair(album, tracks))
+
+            } catch (e: Exception) {
+                Log.e("MusicRepository", "Get album details failed", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    // ========================================
     // JAMENDO SEARCH
     // ========================================
 
-    /**
-     * Поиск треков в Jamendo
-     */
     suspend fun searchJamendo(query: String, limit: Int = 20): Result<List<UniversalTrack>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -87,9 +254,6 @@ class MusicRepository(context: Context) {
     // COMBINED SEARCH
     // ========================================
 
-    /**
-     * Поиск в обоих источниках одновременно
-     */
     suspend fun searchBoth(query: String): Result<Pair<List<UniversalTrack>, List<UniversalTrack>>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -113,7 +277,7 @@ class MusicRepository(context: Context) {
     }
 
     // ========================================
-    // LOCAL DATABASE (Room)
+    // LOCAL DATABASE - TRACKS (Room)
     // ========================================
 
     fun getLocalLikedTracks(): Flow<List<UniversalTrack>> {
@@ -125,7 +289,6 @@ class MusicRepository(context: Context) {
     suspend fun addTrackToLocal(track: UniversalTrack): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                // Конвертируем в старую модель для Room
                 val oldTrack = track.toOldTrackModel()
                 trackDao.insertTrack(oldTrack.toEntity())
                 Log.d("MusicRepository", "Added to local: ${track.name}")
@@ -180,6 +343,88 @@ class MusicRepository(context: Context) {
     }
 
     // ========================================
+    // LOCAL DATABASE - ARTISTS (Room)
+    // ========================================
+
+    fun getFollowedArtists(): Flow<List<ArtistEntity>> {
+        return artistDao.getAllFollowedArtists()
+    }
+
+    suspend fun isArtistFollowed(artistId: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            artistDao.isArtistFollowed(artistId)
+        }
+    }
+
+    suspend fun toggleFollowArtist(artist: UniversalArtist): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val isFollowed = isArtistFollowed(artist.id)
+                if (isFollowed) {
+                    artistDao.deleteArtistById(artist.id)
+                    Result.success(false)
+                } else {
+                    artistDao.insertArtist(
+                        ArtistEntity(
+                            id = artist.id,
+                            name = artist.name,
+                            imageUrl = artist.imageUrl,
+                            followersCount = artist.followersCount,
+                            genres = artist.genres.joinToString(","),
+                            monthlyListeners = artist.monthlyListeners
+                        )
+                    )
+                    Result.success(true)
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    // ========================================
+    // LOCAL DATABASE - ALBUMS (Room)
+    // ========================================
+
+    fun getSavedAlbums(): Flow<List<AlbumEntity>> {
+        return albumDao.getAllSavedAlbums()
+    }
+
+    suspend fun isAlbumSaved(albumId: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            albumDao.isAlbumSaved(albumId)
+        }
+    }
+
+    suspend fun toggleSaveAlbum(album: UniversalAlbum): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val isSaved = isAlbumSaved(album.id)
+                if (isSaved) {
+                    albumDao.deleteAlbumById(album.id)
+                    Result.success(false)
+                } else {
+                    albumDao.insertAlbum(
+                        AlbumEntity(
+                            id = album.id,
+                            name = album.name,
+                            artistName = album.artistName,
+                            artistId = album.artistId,
+                            imageUrl = album.imageUrl,
+                            releaseDate = album.releaseDate,
+                            totalTracks = album.totalTracks,
+                            albumType = album.albumType
+                        )
+                    )
+                    Result.success(true)
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    // ========================================
     // SEARCH HISTORY
     // ========================================
 
@@ -193,7 +438,7 @@ class MusicRepository(context: Context) {
 }
 
 /**
- * Конвертер для обратной совместимости с Room
+ * Converter for backward compatibility with Room
  */
 private fun UniversalTrack.toOldTrackModel(): com.example.hearo.data.model.spotify.Track {
     return com.example.hearo.data.model.spotify.Track(

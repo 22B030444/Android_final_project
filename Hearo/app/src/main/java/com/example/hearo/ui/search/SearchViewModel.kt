@@ -6,7 +6,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.hearo.data.model.MusicSource
+import com.example.hearo.data.model.UniversalAlbum
+import com.example.hearo.data.model.UniversalArtist
 import com.example.hearo.data.model.UniversalTrack
 import com.example.hearo.data.model.UiState
 import com.example.hearo.data.repository.MusicRepository
@@ -15,72 +16,104 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 enum class SearchFilter {
-    ALL,      // iTunes + Jamendo
-    ITUNES,   // Только iTunes
-    JAMENDO   // Только Jamendo
+    ALL,
+    ITUNES,
+    JAMENDO
+}
+
+enum class SearchType {
+    TRACKS,
+    ALBUMS,
+    ARTISTS
 }
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
 
     private val musicRepository = MusicRepository(application)
 
+    // Tracks state
     private val _searchState = MutableLiveData<UiState<List<UniversalTrack>>>()
     val searchState: LiveData<UiState<List<UniversalTrack>>> = _searchState
 
-    private val _currentFilter = MutableLiveData<SearchFilter>(SearchFilter.ALL)
+    // Albums state
+    private val _albumsState = MutableLiveData<UiState<List<UniversalAlbum>>>()
+    val albumsState: LiveData<UiState<List<UniversalAlbum>>> = _albumsState
+
+    // Artists state
+    private val _artistsState = MutableLiveData<UiState<List<UniversalArtist>>>()
+    val artistsState: LiveData<UiState<List<UniversalArtist>>> = _artistsState
+
+    private val _currentFilter = MutableLiveData(SearchFilter.ALL)
     val currentFilter: LiveData<SearchFilter> = _currentFilter
+
+    private val _currentSearchType = MutableLiveData(SearchType.TRACKS)
+    val currentSearchType: LiveData<SearchType> = _currentSearchType
 
     private val _likedTracksIds = MutableLiveData<Set<String>>()
     val likedTracksIds: LiveData<Set<String>> = _likedTracksIds
 
     private var searchJob: Job? = null
+    private var currentQuery: String = ""
 
     init {
         loadLikedTracksIds()
         _searchState.value = UiState.Idle
+        _albumsState.value = UiState.Idle
+        _artistsState.value = UiState.Idle
     }
 
-    /**
-     * Установить фильтр источника
-     */
     fun setFilter(filter: SearchFilter) {
         _currentFilter.value = filter
+        if (currentQuery.isNotBlank()) {
+            search(currentQuery)
+        }
     }
 
-    /**
-     * Поиск с учетом фильтра
-     */
+    fun setSearchType(type: SearchType) {
+        _currentSearchType.value = type
+        if (currentQuery.isNotBlank()) {
+            search(currentQuery)
+        }
+    }
+
     fun search(query: String) {
         searchJob?.cancel()
+        currentQuery = query
 
         if (query.isBlank()) {
             _searchState.value = UiState.Idle
+            _albumsState.value = UiState.Idle
+            _artistsState.value = UiState.Idle
             return
         }
 
         searchJob = viewModelScope.launch {
             delay(500) // Debounce
 
-            _searchState.value = UiState.Loading
-
-            when (_currentFilter.value) {
-                SearchFilter.ALL -> searchAll(query)
-                SearchFilter.ITUNES -> searchITunesOnly(query)
-                SearchFilter.JAMENDO -> searchJamendoOnly(query)
-                null -> searchAll(query)
+            when (_currentSearchType.value) {
+                SearchType.TRACKS -> searchTracks(query)
+                SearchType.ALBUMS -> searchAlbums(query)
+                SearchType.ARTISTS -> searchArtists(query)
+                null -> searchTracks(query)
             }
         }
     }
 
-    /**
-     * Поиск во всех источниках
-     */
-    private suspend fun searchAll(query: String) {
+    private suspend fun searchTracks(query: String) {
+        _searchState.value = UiState.Loading
+
+        when (_currentFilter.value) {
+            SearchFilter.ALL -> searchAllTracks(query)
+            SearchFilter.ITUNES -> searchITunesOnly(query)
+            SearchFilter.JAMENDO -> searchJamendoOnly(query)
+            null -> searchAllTracks(query)
+        }
+    }
+
+    private suspend fun searchAllTracks(query: String) {
         musicRepository.searchBoth(query)
             .onSuccess { (itunesTracks, jamendoTracks) ->
-                // Объединяем результаты
                 val allTracks = itunesTracks + jamendoTracks
-
                 Log.d("SearchViewModel", "Total: ${allTracks.size} tracks")
                 _searchState.value = UiState.Success(allTracks)
                 loadLikedTracksIds()
@@ -90,9 +123,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
             }
     }
 
-    /**
-     * Поиск только в iTunes
-     */
     private suspend fun searchITunesOnly(query: String) {
         musicRepository.searchITunes(query)
             .onSuccess { tracks ->
@@ -104,9 +134,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
             }
     }
 
-    /**
-     * Поиск только в Jamendo
-     */
     private suspend fun searchJamendoOnly(query: String) {
         musicRepository.searchJamendo(query)
             .onSuccess { tracks ->
@@ -118,9 +145,32 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
             }
     }
 
-    /**
-     * Переключить избранное
-     */
+    private suspend fun searchAlbums(query: String) {
+        _albumsState.value = UiState.Loading
+
+        musicRepository.searchAlbums(query)
+            .onSuccess { albums ->
+                Log.d("SearchViewModel", "Found ${albums.size} albums")
+                _albumsState.value = UiState.Success(albums)
+            }
+            .onFailure { error ->
+                _albumsState.value = UiState.Error(error.message ?: "Album search failed")
+            }
+    }
+
+    private suspend fun searchArtists(query: String) {
+        _artistsState.value = UiState.Loading
+
+        musicRepository.searchArtists(query)
+            .onSuccess { artists ->
+                Log.d("SearchViewModel", "Found ${artists.size} artists")
+                _artistsState.value = UiState.Success(artists)
+            }
+            .onFailure { error ->
+                _artistsState.value = UiState.Error(error.message ?: "Artist search failed")
+            }
+    }
+
     fun toggleLocalLike(track: UniversalTrack) {
         viewModelScope.launch {
             musicRepository.toggleLocalLike(track)
@@ -128,9 +178,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    /**
-     * Загрузить ID избранных треков
-     */
     private fun loadLikedTracksIds() {
         viewModelScope.launch {
             musicRepository.getLocalLikedTracks().collect { tracks ->
