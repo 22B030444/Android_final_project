@@ -324,12 +324,19 @@ class MusicRepository(context: Context) {
     suspend fun getArtistImage(artistName: String): String? {
         return withContext(Dispatchers.IO) {
             try {
-                // Ищем артиста и берём обложку его первого альбома как фото
+                // Ищем альбомы артиста
                 val response = itunesApi.searchAlbums(
                     term = artistName,
-                    limit = 1
+                    limit = 5
                 )
-                response.results.firstOrNull()?.getHighResArtwork()
+
+                // Берём первый альбом с изображением
+                val imageUrl = response.results
+                    .firstOrNull { !it.artworkUrl100.isNullOrEmpty() }
+                    ?.getHighResArtwork()
+
+                Log.d("MusicRepository", "Found artist image: $imageUrl")
+                imageUrl
             } catch (e: Exception) {
                 Log.e("MusicRepository", "Failed to get artist image", e)
                 null
