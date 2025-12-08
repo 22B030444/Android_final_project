@@ -69,7 +69,6 @@ class MediaPlayerManager {
                     Log.e("MediaPlayerManager", "Error: what=$what, extra=$extra")
                     _isPreparing.value = false
                     _isPlaying.value = false
-                    _error.value = "Failed to play track"
                     true
                 }
 

@@ -16,7 +16,28 @@ data class UniversalArtist(
     val monthlyListeners: String?,
     val genres: List<String>,
     val source: MusicSource
-) : Parcelable
+) : Parcelable {
+    /**
+     * Copy constructor для обновления изображения
+     */
+    fun copyArtist(
+        id: String = this.id,
+        name: String = this.name,
+        imageUrl: String? = this.imageUrl,
+        followersCount: Int = this.followersCount,
+        monthlyListeners: String? = this.monthlyListeners,
+        genres: List<String> = this.genres,
+        source: MusicSource = this.source
+    ) = UniversalArtist(
+        id = id,
+        name = name,
+        imageUrl = imageUrl,
+        followersCount = followersCount,
+        monthlyListeners = monthlyListeners,
+        genres = genres,
+        source = source
+    )
+}
 
 /**
  * Converters
@@ -25,7 +46,7 @@ fun ITunesArtist.toUniversalArtist(): UniversalArtist {
     return UniversalArtist(
         id = artistId.toString(),
         name = artistName,
-        imageUrl = null, // iTunes doesn't provide artist images in search
+        imageUrl = null, // Will be loaded separately
         followersCount = 0,
         monthlyListeners = null,
         genres = listOfNotNull(primaryGenreName),

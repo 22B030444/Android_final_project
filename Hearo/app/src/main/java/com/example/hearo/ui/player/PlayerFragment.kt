@@ -141,7 +141,6 @@ class PlayerFragment : Fragment() {
         }
 
         binding.menuButton.setOnClickListener {
-            Toast.makeText(requireContext(), "Menu", Toast.LENGTH_SHORT).show()
         }
 
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {

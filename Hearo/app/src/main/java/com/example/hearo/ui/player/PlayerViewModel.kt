@@ -174,10 +174,8 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             // Включили shuffle - создаем новый перемешанный список
             shuffledIndices = trackList.indices.shuffled()
             currentShufflePosition = shuffledIndices.indexOf(currentTrackIndex)
-            _showMessage.value = "Shuffle on"
             Log.d("PlayerViewModel", "Shuffle enabled")
         } else {
-            _showMessage.value = "Shuffle off"
             Log.d("PlayerViewModel", "Shuffle disabled")
         }
     }

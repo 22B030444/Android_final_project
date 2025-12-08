@@ -12,6 +12,9 @@ import com.example.hearo.data.model.UniversalTrack
 import com.example.hearo.data.model.UiState
 import com.example.hearo.data.repository.MusicRepository
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -163,13 +166,27 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
         musicRepository.searchArtists(query)
             .onSuccess { artists ->
-                Log.d("SearchViewModel", "Found ${artists.size} artists")
-                _artistsState.value = UiState.Success(artists)
+                Log.d("SearchViewModel", "Found ${artists.size} artists, loading images...")
+
+                // Загружаем изображения для артистов асинхронно
+                val artistsWithImages = coroutineScope {
+                    // Используем coroutineScope для правильной области видимости корутин
+                    artists.map { artist ->
+                        async {
+                            val imageUrl = musicRepository.getArtistImage(artist.name)
+                            artist.copyArtist(imageUrl = imageUrl)
+                        }
+                    }.awaitAll() // Ждем завершения всех корутин
+                }
+
+                Log.d("SearchViewModel", "Loaded images for ${artistsWithImages.size} artists")
+                _artistsState.value = UiState.Success(artistsWithImages)
             }
             .onFailure { error ->
                 _artistsState.value = UiState.Error(error.message ?: "Artist search failed")
             }
     }
+
 
     fun toggleLocalLike(track: UniversalTrack) {
         viewModelScope.launch {
