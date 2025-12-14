@@ -370,8 +370,21 @@ class MusicRepository(context: Context) {
     // LOCAL DATABASE - ARTISTS (Room)
     // ========================================
 
-    fun getFollowedArtists(): Flow<List<ArtistEntity>> {
-        return artistDao.getAllFollowedArtists()
+    // Replace the current getFollowedArtists() function with this:
+    fun getFollowedArtists(): Flow<List<UniversalArtist>> {
+        return artistDao.getAllFollowedArtists().map { entities ->
+            entities.map { entity ->
+                UniversalArtist(
+                    id = entity.id,
+                    name = entity.name,
+                    imageUrl = entity.imageUrl,
+                    followersCount = entity.followersCount,
+                    monthlyListeners = entity.monthlyListeners,
+                    genres = entity.genres?.split(",")?.map { it.trim() } ?: emptyList(),
+                    source = MusicSource.ITUNES
+                )
+            }
+        }
     }
 
     suspend fun isArtistFollowed(artistId: String): Boolean {

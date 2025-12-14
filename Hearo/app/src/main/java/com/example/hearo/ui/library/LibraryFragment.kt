@@ -35,29 +35,24 @@ class LibraryFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // Переход к Liked Songs
+
         binding.likedSongsCard.setOnClickListener {
             findNavController().navigate(R.id.action_libraryFragment_to_likedSongsFragment)
         }
 
-        // Переход к Playlists
         binding.playlistsCard.setOnClickListener {
             findNavController().navigate(R.id.action_libraryFragment_to_playlistsFragment)
         }
 
-        // Downloads (заглушка)
-        binding.downloadsCard.setOnClickListener {
-            Toast.makeText(requireContext(), "Downloads coming soon", Toast.LENGTH_SHORT).show()
-        }
-
-        // Artists (заглушка)
         binding.artistsCard.setOnClickListener {
-            Toast.makeText(requireContext(), "Artists coming soon", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.action_libraryFragment_to_artistsFragment)
         }
+
+        binding.downloadsCard.setOnClickListener {
+            findNavController().navigate(R.id.action_libraryFragment_to_downloadsFragment)
+        }
+
     }
-
-
-
 
     private fun observeLikedTracksCount() {
         viewModel.likedTracksCount.observe(viewLifecycleOwner) { count ->
