@@ -85,16 +85,7 @@
                 android:visibility="gone"
                 tools:text="MAROON 5" />
 
-            <!-- Artist Label -->
-            <TextView
-                android:id="@+id/artistLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="4dp"
-                android:text="Artist"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
+
 
             <!-- Monthly Listeners -->
             <TextView
@@ -105,7 +96,7 @@
                 android:layout_marginTop="16dp"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp"
-                tools:text="2.3 L monthly listeners" />
+                />
 
             <!-- Action Buttons Row -->
             <LinearLayout
@@ -143,16 +134,17 @@
                     android:layout_height="0dp"
                     android:layout_weight="1" />
 
-                <!-- Play Button -->
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/playButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageButton
+                    android:id="@+id/playPauseButton"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginEnd="32dp"
+                    android:background="@drawable/player_gradient"
                     android:src="@drawable/ic_play"
-                    app:backgroundTint="@color/purple_primary"
-                    app:tint="@color/white"
-                    app:fabSize="normal"
-                    android:contentDescription="Play" />
+                    android:scaleType="center"
+                    android:padding="16dp"
+                    android:foreground="?attr/selectableItemBackgroundBorderless" />
 
             </LinearLayout>
 

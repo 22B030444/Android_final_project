@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="12dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- Playlist Image -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        app:cardCornerRadius="6dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@color/search_bar">
+
+        <ImageView
+            android:id="@+id/playlistImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:padding="10dp"
+            tools:src="@drawable/ic_library"
+            app:tint="@color/text_secondary"
+            android:contentDescription="Playlist" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Playlist Info -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="16dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/playlistName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="My Playlist" />
+
+        <TextView
+            android:id="@+id/tracksCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            tools:text="12 songs" />
+
+    </LinearLayout>
+
+</LinearLayout>
+
+
