@@ -14,7 +14,8 @@ import com.example.hearo.databinding.ItemUniversalTrackBinding
 
 class UniversalTrackAdapter(
     private val onTrackClick: (UniversalTrack) -> Unit,
-    private val onFavoriteClick: (UniversalTrack) -> Unit
+    private val onFavoriteClick: (UniversalTrack) -> Unit,
+    private val onLongClick: ((UniversalTrack) -> Unit)? = null
 ) : ListAdapter<UniversalTrack, UniversalTrackAdapter.TrackViewHolder>(TrackDiffCallback()) {
 
     private var likedTrackIds: Set<String> = emptySet()
@@ -42,19 +43,12 @@ class UniversalTrackAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(track: UniversalTrack) {
-            // Название трека
             binding.trackName.text = track.name
-
-            // Исполнитель
             binding.artistName.text = track.artistName
-
-            // Альбом
             binding.albumName.text = track.albumName
-
-            // Длительность
             binding.duration.text = formatDuration(track.durationMs)
 
-            // Источник (бейдж)
+            // Source badge
             when (track.source) {
                 MusicSource.ITUNES -> {
                     binding.sourceBadge.text = "iTunes"
@@ -70,21 +64,21 @@ class UniversalTrackAdapter(
                 }
             }
 
-            // Показываем можно ли скачать полный трек
+            // Download icon
             if (track.canDownloadFull) {
                 binding.downloadIcon.visibility = android.view.View.VISIBLE
             } else {
                 binding.downloadIcon.visibility = android.view.View.GONE
             }
 
-            // Обложка
+            // Album image
             Glide.with(binding.root.context)
                 .load(track.imageUrl)
                 .placeholder(R.color.surface_dark)
                 .error(R.color.surface_dark)
                 .into(binding.albumImage)
 
-            // Избранное
+            // Favorite state
             val isLiked = likedTrackIds.contains(track.id)
             if (isLiked) {
                 binding.favoriteButton.setImageResource(R.drawable.ic_favorite)
@@ -92,7 +86,7 @@ class UniversalTrackAdapter(
                 binding.favoriteButton.setImageResource(R.drawable.ic_favorite_border)
             }
 
-            // Проверяем наличие preview
+            // Preview availability
             if (track.previewUrl.isNullOrEmpty()) {
                 binding.trackName.alpha = 0.5f
                 binding.artistName.alpha = 0.5f
@@ -101,9 +95,14 @@ class UniversalTrackAdapter(
                 binding.artistName.alpha = 1.0f
             }
 
-            // Клики
+            // Click listeners
             binding.root.setOnClickListener {
                 onTrackClick(track)
+            }
+
+            binding.root.setOnLongClickListener {
+                onLongClick?.invoke(track)
+                onLongClick != null
             }
 
             binding.favoriteButton.setOnClickListener {
@@ -128,3 +127,5 @@ class UniversalTrackAdapter(
         }
     }
 }
+
+

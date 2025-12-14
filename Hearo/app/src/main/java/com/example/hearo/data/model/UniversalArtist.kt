@@ -4,9 +4,7 @@ import android.os.Parcelable
 import com.example.hearo.data.model.itunes.ITunesArtist
 import kotlinx.parcelize.Parcelize
 
-/**
- * Universal artist model for working with different sources
- */
+
 @Parcelize
 data class UniversalArtist(
     val id: String,
@@ -17,9 +15,7 @@ data class UniversalArtist(
     val genres: List<String>,
     val source: MusicSource
 ) : Parcelable {
-    /**
-     * Copy constructor для обновления изображения
-     */
+
     fun copyArtist(
         id: String = this.id,
         name: String = this.name,
@@ -39,9 +35,6 @@ data class UniversalArtist(
     )
 }
 
-/**
- * Converters
- */
 fun ITunesArtist.toUniversalArtist(): UniversalArtist {
     return UniversalArtist(
         id = artistId.toString(),
