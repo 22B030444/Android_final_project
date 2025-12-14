@@ -4,7 +4,6 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/loginFragment">
 
-    <!-- Login Screen -->
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.hearo.ui.auth.LoginFragment"
@@ -16,7 +15,6 @@
             app:popUpToInclusive="true" />
     </fragment>
 
-    <!-- Home Screen -->
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.hearo.ui.home.HomeFragment"
@@ -24,9 +22,11 @@
         <action
             android:id="@+id/action_homeFragment_to_playerFragment"
             app:destination="@id/playerFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_historyFragment"
+            app:destination="@id/historyFragment" />
     </fragment>
 
-    <!-- Search Screen -->
     <fragment
         android:id="@+id/searchFragment"
         android:name="com.example.hearo.ui.search.SearchFragment"
@@ -39,7 +39,6 @@
             app:destination="@id/artistDetailFragment" />
     </fragment>
 
-    <!-- Library Screen -->
     <fragment
         android:id="@+id/libraryFragment"
         android:name="com.example.hearo.ui.library.LibraryFragment"
@@ -52,7 +51,6 @@
             app:destination="@id/playlistsFragment" />
     </fragment>
 
-    <!-- Liked Songs Screen -->
     <fragment
         android:id="@+id/likedSongsFragment"
         android:name="com.example.hearo.ui.library.LikedSongsFragment"
@@ -62,7 +60,6 @@
             app:destination="@id/playerFragment" />
     </fragment>
 
-    <!-- Playlists Screen -->
     <fragment
         android:id="@+id/playlistsFragment"
         android:name="com.example.hearo.ui.playlist.PlaylistsFragment"
@@ -72,7 +69,6 @@
             app:destination="@id/playlistDetailFragment" />
     </fragment>
 
-    <!-- Playlist Detail Screen -->
     <fragment
         android:id="@+id/playlistDetailFragment"
         android:name="com.example.hearo.ui.playlist.PlaylistDetailFragment"
@@ -82,7 +78,6 @@
             app:destination="@id/playerFragment" />
     </fragment>
 
-    <!-- Artist Detail Screen -->
     <fragment
         android:id="@+id/artistDetailFragment"
         android:name="com.example.hearo.ui.artist.ArtistDetailFragment"
@@ -92,12 +87,18 @@
             app:destination="@id/playerFragment" />
     </fragment>
 
-    <!-- Player Screen -->
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="com.example.hearo.ui.history.HistoryFragment"
+        android:label="History">
+        <action
+            android:id="@+id/action_historyFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
+
     <fragment
         android:id="@+id/playerFragment"
         android:name="com.example.hearo.ui.player.PlayerFragment"
         android:label="Player" />
 
 </navigation>
-
-

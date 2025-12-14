@@ -87,7 +87,7 @@ dependencies {
     implementation(libs.logging.interceptor)
 
     implementation(libs.glide)
-
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

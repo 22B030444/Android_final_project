@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hearo.data.model.UniversalTrack
+import com.example.hearo.data.repository.HistoryRepository
 import com.example.hearo.data.repository.MusicRepository
 import com.example.hearo.utils.DownloadProgress
 import com.example.hearo.utils.TrackDownloadManager
@@ -15,14 +16,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 enum class RepeatMode {
-    OFF,      // Не повторять
-    ALL,      // Повторять весь список
-    ONE       // Повторять один трек
+    OFF,
+    ALL,
+    ONE
 }
 
 class PlayerViewModel(application: Application) : AndroidViewModel(application) {
 
     private val musicRepository = MusicRepository(application)
+    private val historyRepository = HistoryRepository(application)
     val mediaPlayer = MediaPlayerManager()
 
     private val downloadManager = TrackDownloadManager(application)
@@ -43,7 +45,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private val _showMessage = MutableStateFlow<String?>(null)
     val showMessage: StateFlow<String?> = _showMessage
 
-    // ⭐ Режимы воспроизведения
     private val _isShuffleEnabled = MutableStateFlow(false)
     val isShuffleEnabled: StateFlow<Boolean> = _isShuffleEnabled
 
@@ -57,27 +58,23 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private var shuffledIndices: List<Int> = emptyList()
     private var currentShufflePosition: Int = 0
 
-    /**
-     * Установить список треков с начальным индексом
-     */
     fun setTrackList(tracks: List<UniversalTrack>, startIndex: Int = 0) {
         trackList = tracks
         currentTrackIndex = startIndex.coerceIn(0, tracks.size - 1)
-
-        // Создаем перемешанный список индексов
         shuffledIndices = trackList.indices.shuffled()
         currentShufflePosition = shuffledIndices.indexOf(currentTrackIndex)
-
         Log.d("PlayerViewModel", "Track list set: ${tracks.size} tracks, starting at index $currentTrackIndex")
     }
 
-    /**
-     * Установить и воспроизвести трек
-     */
     fun setTrack(track: UniversalTrack) {
         Log.d("PlayerViewModel", "=== SET TRACK: ${track.name} ===")
         _currentTrack.value = track
         checkIfLiked(track.id)
+
+        // Сохраняем в историю прослушивания
+        viewModelScope.launch {
+            historyRepository.addToHistory(track)
+        }
 
         if (track.previewUrl.isNullOrEmpty()) {
             _showMessage.value = "No preview available for this track"
@@ -89,9 +86,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         startProgressUpdate()
     }
 
-    /**
-     * Play/Pause
-     */
     fun togglePlayPause() {
         if (mediaPlayer.isPlaying.value) {
             mediaPlayer.pause()
@@ -102,25 +96,19 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    /**
-     * ⭐ Предыдущий трек
-     */
     fun playPrevious() {
         if (trackList.isEmpty()) {
             _showMessage.value = "No previous track available"
             return
         }
 
-        // Если трек воспроизводился больше 3 секунд, перематываем в начало
         if (mediaPlayer.getCurrentPosition() > 3000) {
             mediaPlayer.seekTo(0)
             _currentPosition.value = 0
             return
         }
 
-        // Иначе переходим к предыдущему треку
         if (_isShuffleEnabled.value) {
-            // В режиме shuffle
             currentShufflePosition = if (currentShufflePosition > 0) {
                 currentShufflePosition - 1
             } else {
@@ -128,7 +116,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             }
             currentTrackIndex = shuffledIndices[currentShufflePosition]
         } else {
-            // В обычном режиме
             currentTrackIndex = if (currentTrackIndex > 0) {
                 currentTrackIndex - 1
             } else {
@@ -141,9 +128,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         setTrack(previousTrack)
     }
 
-    /**
-     * ⭐ Следующий трек
-     */
     fun playNext() {
         if (trackList.isEmpty()) {
             _showMessage.value = "No next track available"
@@ -151,11 +135,9 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         if (_isShuffleEnabled.value) {
-            // В режиме shuffle
             currentShufflePosition = (currentShufflePosition + 1) % shuffledIndices.size
             currentTrackIndex = shuffledIndices[currentShufflePosition]
         } else {
-            // В обычном режиме
             currentTrackIndex = (currentTrackIndex + 1) % trackList.size
         }
 
@@ -164,25 +146,20 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         setTrack(nextTrack)
     }
 
-    /**
-     * ⭐ Переключить Shuffle
-     */
     fun toggleShuffle() {
         _isShuffleEnabled.value = !_isShuffleEnabled.value
 
         if (_isShuffleEnabled.value) {
-            // Включили shuffle - создаем новый перемешанный список
             shuffledIndices = trackList.indices.shuffled()
             currentShufflePosition = shuffledIndices.indexOf(currentTrackIndex)
+            _showMessage.value = "Shuffle on"
             Log.d("PlayerViewModel", "Shuffle enabled")
         } else {
+            _showMessage.value = "Shuffle off"
             Log.d("PlayerViewModel", "Shuffle disabled")
         }
     }
 
-    /**
-     * ⭐ Переключить режим повтора
-     */
     fun toggleRepeat() {
         _repeatMode.value = when (_repeatMode.value) {
             RepeatMode.OFF -> {
@@ -201,17 +178,11 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         Log.d("PlayerViewModel", "Repeat mode: ${_repeatMode.value}")
     }
 
-    /**
-     * Перемотка
-     */
     fun seekTo(position: Int) {
         mediaPlayer.seekTo(position)
         _currentPosition.value = position
     }
 
-    /**
-     * Переключить избранное
-     */
     fun toggleLike() {
         val track = _currentTrack.value ?: return
         viewModelScope.launch {
@@ -220,9 +191,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    /**
-     * Скачать трек
-     */
     fun downloadTrack() {
         val track = _currentTrack.value ?: return
 
@@ -265,24 +233,18 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         _showMessage.value = null
     }
 
-    /**
-     * ⭐ Обработка окончания трека с учетом режимов повтора
-     */
     private fun onTrackCompleted() {
         when (_repeatMode.value) {
             RepeatMode.ONE -> {
-                // Повторяем текущий трек
                 val track = _currentTrack.value
                 if (track != null) {
                     setTrack(track)
                 }
             }
             RepeatMode.ALL -> {
-                // Переходим к следующему треку
                 playNext()
             }
             RepeatMode.OFF -> {
-                // Переходим к следующему, если не последний
                 if (_isShuffleEnabled.value) {
                     if (currentShufflePosition < shuffledIndices.size - 1) {
                         playNext()
@@ -296,9 +258,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    /**
-     * Обновление прогресса
-     */
     private fun startProgressUpdate() {
         stopProgressUpdate()
         progressUpdateJob = viewModelScope.launch {
@@ -310,7 +269,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
                 if (duration > 0 && currentPos >= duration - 100) {
                     stopProgressUpdate()
                     _currentPosition.value = 0
-                    // ⭐ Вызываем обработку окончания трека
                     onTrackCompleted()
                     break
                 }
@@ -332,4 +290,3 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         stopProgressUpdate()
     }
 }
-
