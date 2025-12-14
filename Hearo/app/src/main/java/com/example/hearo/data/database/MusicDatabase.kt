@@ -6,11 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.hearo.data.database.dao.AlbumDao
 import com.example.hearo.data.database.dao.ArtistDao
+import com.example.hearo.data.database.dao.DownloadedTrackDao
 import com.example.hearo.data.database.dao.PlaylistDao
 import com.example.hearo.data.database.dao.RecentlyPlayedDao
 import com.example.hearo.data.database.dao.TrackDao
 import com.example.hearo.data.database.entity.AlbumEntity
 import com.example.hearo.data.database.entity.ArtistEntity
+import com.example.hearo.data.database.entity.DownloadedTrackEntity
 import com.example.hearo.data.database.entity.PlaylistEntity
 import com.example.hearo.data.database.entity.PlaylistTrackEntity
 import com.example.hearo.data.database.entity.RecentlyPlayedEntity
@@ -23,9 +25,10 @@ import com.example.hearo.data.database.entity.TrackEntity
         AlbumEntity::class,
         PlaylistEntity::class,
         PlaylistTrackEntity::class,
-        RecentlyPlayedEntity::class
+        RecentlyPlayedEntity::class,
+        DownloadedTrackEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class MusicDatabase : RoomDatabase() {
@@ -35,6 +38,7 @@ abstract class MusicDatabase : RoomDatabase() {
     abstract fun albumDao(): AlbumDao
     abstract fun playlistDao(): PlaylistDao
     abstract fun recentlyPlayedDao(): RecentlyPlayedDao
+    abstract fun downloadedTrackDao(): DownloadedTrackDao
 
     companion object {
         @Volatile
@@ -55,3 +59,5 @@ abstract class MusicDatabase : RoomDatabase() {
         }
     }
 }
+
+
