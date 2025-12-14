@@ -29,15 +29,6 @@
             tools:src="@tools:sample/avatars"
             android:contentDescription="Album" />
 
-        <!-- Downloaded indicator -->
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="2dp"
-            android:src="@drawable/ic_downloaded_indicator"
-            android:contentDescription="Downloaded" />
-
     </com.google.android.material.card.MaterialCardView>
 
     <!-- Track Info -->
