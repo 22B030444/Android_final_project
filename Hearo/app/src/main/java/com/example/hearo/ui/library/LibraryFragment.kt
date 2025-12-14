@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -16,7 +15,7 @@ class LibraryFragment : Fragment() {
     private var _binding: FragmentLibraryBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: LikedSongsViewModel by viewModels()
+    private val viewModel: LibraryViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -31,11 +30,10 @@ class LibraryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupClickListeners()
-        observeLikedTracksCount()
+        observeCounts()
     }
 
     private fun setupClickListeners() {
-
         binding.likedSongsCard.setOnClickListener {
             findNavController().navigate(R.id.action_libraryFragment_to_likedSongsFragment)
         }
@@ -51,16 +49,23 @@ class LibraryFragment : Fragment() {
         binding.downloadsCard.setOnClickListener {
             findNavController().navigate(R.id.action_libraryFragment_to_downloadsFragment)
         }
-
     }
 
-    private fun observeLikedTracksCount() {
-        viewModel.likedTracksCount.observe(viewLifecycleOwner) { count ->
-            binding.likedSongsCountText.text = if (count == 1) {
-                "1 song"
-            } else {
-                "$count songs"
-            }
+    private fun observeCounts() {
+        viewModel.likedSongsCount.observe(viewLifecycleOwner) { count ->
+            binding.likedSongsCountText.text = if (count == 1) "1 song" else "$count songs"
+        }
+
+        viewModel.downloadsCount.observe(viewLifecycleOwner) { count ->
+            binding.downloadsCountText?.text = if (count == 1) "1 track" else "$count tracks"
+        }
+
+        viewModel.artistsCount.observe(viewLifecycleOwner) { count ->
+            binding.artistsCountText?.text = if (count == 1) "1 artist" else "$count artists"
+        }
+
+        viewModel.playlistsCount.observe(viewLifecycleOwner) { count ->
+            binding.playlistsCountText?.text = if (count == 1) "1 playlist" else "$count playlists"
         }
     }
 
@@ -69,5 +74,3 @@ class LibraryFragment : Fragment() {
         _binding = null
     }
 }
-
-

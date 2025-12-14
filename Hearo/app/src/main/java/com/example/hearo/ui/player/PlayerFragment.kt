@@ -267,38 +267,47 @@ class PlayerFragment : Fragment() {
             }
         }
 
-        // Прогресс скачивания
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.downloadProgress.collect { progress ->
-                when (progress) {
-                    is DownloadProgress.Downloading -> {
-                        // Можно показать прогресс
-                    }
-                    is DownloadProgress.Success -> {
-                        Toast.makeText(
-                            requireContext(),
-                            "Download completed!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    is DownloadProgress.Failed -> {
-                        Toast.makeText(
-                            requireContext(),
-                            "Download failed: ${progress.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    else -> {}
-                }
-            }
-        }
-
         // Сообщения от ViewModel
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.showMessage.collect { message ->
                 message?.let {
                     Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
                     viewModel.clearMessage()
+                }
+            }
+        }
+        // Добавить в observeViewModel():
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.isDownloaded.collect { isDownloaded ->
+                if (isDownloaded) {
+                    binding.downloadButton.setImageResource(R.drawable.ic_downloaded_indicator)
+                    binding.downloadButton.alpha = 0.5f
+                } else {
+                    binding.downloadButton.setImageResource(R.drawable.ic_download)
+                    binding.downloadButton.alpha = 1.0f
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.downloadProgress.collect { progress ->
+                when {
+                    progress.isDownloading -> {
+                        binding.downloadProgressBar?.visibility = View.VISIBLE
+                        binding.downloadProgressBar?.progress = progress.progress
+                    }
+                    progress.isComplete -> {
+                        binding.downloadProgressBar?.visibility = View.GONE
+                        Toast.makeText(requireContext(), "Download complete!", Toast.LENGTH_SHORT).show()
+                    }
+                    progress.error != null -> {
+                        binding.downloadProgressBar?.visibility = View.GONE
+                        Toast.makeText(requireContext(), progress.error, Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        binding.downloadProgressBar?.visibility = View.GONE
+                    }
                 }
             }
         }

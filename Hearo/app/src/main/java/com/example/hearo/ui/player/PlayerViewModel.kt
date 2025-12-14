@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hearo.data.model.UniversalTrack
+import com.example.hearo.data.repository.DownloadsRepository
 import com.example.hearo.data.repository.HistoryRepository
 import com.example.hearo.data.repository.MusicRepository
 import com.example.hearo.utils.DownloadProgress
@@ -25,6 +26,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     private val musicRepository = MusicRepository(application)
     private val historyRepository = HistoryRepository(application)
+    private val downloadsRepository = DownloadsRepository(application)
     val mediaPlayer = MediaPlayerManager()
 
     private val downloadManager = TrackDownloadManager(application)
@@ -35,6 +37,9 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     private val _isLiked = MutableStateFlow(false)
     val isLiked: StateFlow<Boolean> = _isLiked
+
+    private val _isDownloaded = MutableStateFlow(false)
+    val isDownloaded: StateFlow<Boolean> = _isDownloaded
 
     private val _currentPosition = MutableStateFlow(0)
     val currentPosition: StateFlow<Int> = _currentPosition
@@ -70,6 +75,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         Log.d("PlayerViewModel", "=== SET TRACK: ${track.name} ===")
         _currentTrack.value = track
         checkIfLiked(track.id)
+        checkIfDownloaded(track.id)
 
         // Сохраняем в историю прослушивания
         viewModelScope.launch {
@@ -194,24 +200,22 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     fun downloadTrack() {
         val track = _currentTrack.value ?: return
 
-        if (track.canDownloadFull && !track.downloadUrl.isNullOrEmpty()) {
-            downloadManager.downloadTrack(
-                url = track.downloadUrl,
-                trackName = track.name,
-                artistName = track.artistName,
-                isFull = true
-            )
-            _showMessage.value = "Downloading full track..."
-        } else if (!track.previewUrl.isNullOrEmpty()) {
-            downloadManager.downloadTrack(
-                url = track.previewUrl,
-                trackName = track.name,
-                artistName = track.artistName,
-                isFull = false
-            )
-            _showMessage.value = "Downloading preview..."
-        } else {
-            _showMessage.value = "No download available"
+        // Проверяем, не скачан ли уже
+        viewModelScope.launch {
+            if (downloadsRepository.isTrackDownloaded(track.id)) {
+                _showMessage.value = "Track already downloaded"
+                return@launch
+            }
+
+            if (track.canDownloadFull && !track.downloadUrl.isNullOrEmpty()) {
+                downloadManager.downloadTrack(track, isFull = true)
+                _showMessage.value = "Downloading full track..."
+            } else if (!track.previewUrl.isNullOrEmpty()) {
+                downloadManager.downloadTrack(track, isFull = false)
+                _showMessage.value = "Downloading preview..."
+            } else {
+                _showMessage.value = "No download available"
+            }
         }
     }
 
@@ -226,6 +230,12 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private fun checkIfLiked(trackId: String) {
         viewModelScope.launch {
             _isLiked.value = musicRepository.isTrackLikedLocally(trackId)
+        }
+    }
+
+    private fun checkIfDownloaded(trackId: String) {
+        viewModelScope.launch {
+            _isDownloaded.value = downloadsRepository.isTrackDownloaded(trackId)
         }
     }
 

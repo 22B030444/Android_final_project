@@ -1,148 +1,216 @@
 package com.example.hearo.utils
 
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.util.Log
-import android.widget.Toast
+import com.example.hearo.data.model.UniversalTrack
+import com.example.hearo.data.repository.DownloadsRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+
+data class DownloadProgress(
+    val isDownloading: Boolean = false,
+    val progress: Int = 0,
+    val fileName: String = "",
+    val isComplete: Boolean = false,
+    val error: String? = null
+)
 
 class TrackDownloadManager(private val context: Context) {
 
-    private val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+    private val client = OkHttpClient()
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val downloadsRepository = DownloadsRepository(context)
 
-    private val _downloadProgress = MutableStateFlow<DownloadProgress>(DownloadProgress.Idle)
+    private val _downloadProgress = MutableStateFlow(DownloadProgress())
     val downloadProgress: StateFlow<DownloadProgress> = _downloadProgress
 
-    private var currentDownloadId: Long = -1
+    private var currentTrack: UniversalTrack? = null
+    private var currentIsFull: Boolean = false
 
-    private val downloadReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1) ?: return
+    fun downloadTrack(
+        track: UniversalTrack,
+        isFull: Boolean
+    ) {
+        val url = if (isFull && !track.downloadUrl.isNullOrEmpty()) {
+            track.downloadUrl
+        } else {
+            track.previewUrl
+        }
 
-            if (id == currentDownloadId) {
-                val query = DownloadManager.Query().setFilterById(id)
-                val cursor = downloadManager.query(query)
+        if (url.isNullOrEmpty()) {
+            _downloadProgress.value = DownloadProgress(error = "No download URL available")
+            return
+        }
 
-                if (cursor.moveToFirst()) {
-                    val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-                    val status = cursor.getInt(statusIndex)
+        currentTrack = track
+        currentIsFull = isFull
 
-                    when (status) {
-                        DownloadManager.STATUS_SUCCESSFUL -> {
-                            Log.d("TrackDownloadManager", "✅ Download completed!")
-                            _downloadProgress.value = DownloadProgress.Success
+        val fileName = sanitizeFileName("${track.artistName} - ${track.name}")
+        val extension = if (url.contains(".mp3")) ".mp3" else ".m4a"
 
-                            val uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)
-                            val localUri = cursor.getString(uriIndex)
-                            Log.d("TrackDownloadManager", "File saved at: $localUri")
+        scope.launch {
+            try {
+                _downloadProgress.value = DownloadProgress(
+                    isDownloading = true,
+                    progress = 0,
+                    fileName = fileName
+                )
 
-                            Toast.makeText(context, "Track downloaded successfully!", Toast.LENGTH_SHORT).show()
-                        }
+                val file = downloadFile(url, fileName + extension)
 
-                        DownloadManager.STATUS_FAILED -> {
-                            Log.e("TrackDownloadManager", "❌ Download failed!")
-                            _downloadProgress.value = DownloadProgress.Failed("Download failed")
-                            Toast.makeText(context, "Download failed", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                if (file != null && file.exists()) {
+                    // Сохраняем в базу данных
+                    downloadsRepository.saveDownloadedTrack(
+                        track = track,
+                        localFilePath = file.absolutePath,
+                        fileSize = file.length(),
+                        isFull = isFull
+                    )
+
+                    _downloadProgress.value = DownloadProgress(
+                        isDownloading = false,
+                        progress = 100,
+                        fileName = fileName,
+                        isComplete = true
+                    )
+                    Log.d("TrackDownloadManager", "Download complete: ${file.absolutePath}")
+                } else {
+                    _downloadProgress.value = DownloadProgress(
+                        isDownloading = false,
+                        error = "Failed to save file"
+                    )
                 }
-                cursor.close()
+            } catch (e: Exception) {
+                Log.e("TrackDownloadManager", "Download failed", e)
+                _downloadProgress.value = DownloadProgress(
+                    isDownloading = false,
+                    error = e.message ?: "Download failed"
+                )
             }
         }
     }
 
-    init {
-        val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(downloadReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            context.registerReceiver(downloadReceiver, filter)
-        }
-    }
-
+    // Для обратной совместимости
     fun downloadTrack(
         url: String,
         trackName: String,
         artistName: String,
-        isFull: Boolean = false
+        isFull: Boolean
     ) {
-        if (url.isEmpty()) {
-            _downloadProgress.value = DownloadProgress.Failed("No URL")
-            Toast.makeText(context, "No download URL available", Toast.LENGTH_SHORT).show()
-            return
-        }
+        val fileName = sanitizeFileName("$artistName - $trackName")
+        val extension = if (url.contains(".mp3")) ".mp3" else ".m4a"
 
-        try {
-            val safeFileName = "${artistName} - ${trackName}"
-                .replace(Regex("[^a-zA-Z0-9 ]"), "")
-                .replace(" ", "_")
-                .take(50)
-
-            val fileName = if (isFull) {
-                "$safeFileName-FULL.mp3"
-            } else {
-                "$safeFileName-preview.mp3"
-            }
-
-            Log.d("TrackDownloadManager", "Starting download...")
-            Log.d("TrackDownloadManager", "URL: $url")
-            Log.d("TrackDownloadManager", "Type: ${if (isFull) "FULL TRACK" else "PREVIEW"}")
-
-            val request = DownloadManager.Request(Uri.parse(url)).apply {
-                setTitle(if (isFull) "$artistName - $trackName (Full)" else "$artistName - $trackName (Preview)")
-                setDescription(if (isFull) "Downloading full track..." else "Downloading preview...")
-                setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-
-                setDestinationInExternalPublicDir(
-                    Environment.DIRECTORY_MUSIC,
-                    "Hearo/$fileName"
+        scope.launch {
+            try {
+                _downloadProgress.value = DownloadProgress(
+                    isDownloading = true,
+                    progress = 0,
+                    fileName = fileName
                 )
 
-                setAllowedNetworkTypes(
-                    DownloadManager.Request.NETWORK_WIFI or
-                            DownloadManager.Request.NETWORK_MOBILE
+                val file = downloadFile(url, fileName + extension)
+
+                if (file != null && file.exists()) {
+                    _downloadProgress.value = DownloadProgress(
+                        isDownloading = false,
+                        progress = 100,
+                        fileName = fileName,
+                        isComplete = true
+                    )
+                    Log.d("TrackDownloadManager", "Download complete: ${file.absolutePath}")
+                } else {
+                    _downloadProgress.value = DownloadProgress(
+                        isDownloading = false,
+                        error = "Failed to save file"
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("TrackDownloadManager", "Download failed", e)
+                _downloadProgress.value = DownloadProgress(
+                    isDownloading = false,
+                    error = e.message ?: "Download failed"
                 )
-
-                setAllowedOverMetered(true)
-                setAllowedOverRoaming(true)
             }
-
-            currentDownloadId = downloadManager.enqueue(request)
-            _downloadProgress.value = DownloadProgress.Downloading(0)
-
-            val message = if (isFull) {
-                "Downloading full track: $trackName"
-            } else {
-                "Downloading preview: $trackName"
-            }
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-
-        } catch (e: Exception) {
-            Log.e("TrackDownloadManager", "Error starting download", e)
-            _downloadProgress.value = DownloadProgress.Failed(e.message ?: "Unknown error")
-            Toast.makeText(context, "Failed to start download", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private suspend fun downloadFile(url: String, fileName: String): File? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val request = Request.Builder()
+                    .url(url)
+                    .build()
+
+                val response = client.newCall(request).execute()
+
+                if (!response.isSuccessful) {
+                    throw IOException("Failed to download: ${response.code}")
+                }
+
+                val body = response.body ?: throw IOException("Empty response body")
+                val contentLength = body.contentLength()
+
+                // Создаем директорию для загрузок
+                val downloadDir = File(
+                    context.getExternalFilesDir(Environment.DIRECTORY_MUSIC),
+                    "Hearo"
+                )
+                if (!downloadDir.exists()) {
+                    downloadDir.mkdirs()
+                }
+
+                val file = File(downloadDir, fileName)
+
+                FileOutputStream(file).use { output ->
+                    body.byteStream().use { input ->
+                        val buffer = ByteArray(8192)
+                        var bytesRead: Int
+                        var totalBytesRead: Long = 0
+
+                        while (input.read(buffer).also { bytesRead = it } != -1) {
+                            output.write(buffer, 0, bytesRead)
+                            totalBytesRead += bytesRead
+
+                            if (contentLength > 0) {
+                                val progress = ((totalBytesRead * 100) / contentLength).toInt()
+                                _downloadProgress.value = _downloadProgress.value.copy(
+                                    progress = progress
+                                )
+                            }
+                        }
+                    }
+                }
+
+                file
+            } catch (e: Exception) {
+                Log.e("TrackDownloadManager", "Error downloading file", e)
+                null
+            }
+        }
+    }
+
+    private fun sanitizeFileName(name: String): String {
+        return name.replace(Regex("[\\\\/:*?\"<>|]"), "_")
+            .take(100)
+    }
+
+    fun resetProgress() {
+        _downloadProgress.value = DownloadProgress()
     }
 
     fun release() {
-        try {
-            context.unregisterReceiver(downloadReceiver)
-        } catch (e: Exception) {
-            Log.e("TrackDownloadManager", "Error unregistering receiver", e)
-        }
+        scope.cancel()
     }
-}
-
-sealed class DownloadProgress {
-    object Idle : DownloadProgress()
-    data class Downloading(val progress: Int) : DownloadProgress()
-    object Success : DownloadProgress()
-    data class Failed(val message: String) : DownloadProgress()
 }
