@@ -108,7 +108,18 @@
             android:src="@drawable/ic_download"
             app:tint="@color/white"
             android:contentDescription="Download" />
-
+        <!-- Добавить после downloadButton -->
+        <ProgressBar
+            android:id="@+id/downloadProgressBar"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="0dp"
+            android:layout_height="4dp"
+            android:layout_marginTop="4dp"
+            android:visibility="gone"
+            android:progressTint="@color/purple_primary"
+            app:layout_constraintTop_toBottomOf="@id/downloadButton"
+            app:layout_constraintStart_toStartOf="@id/downloadButton"
+            app:layout_constraintEnd_toEndOf="@id/downloadButton" />
         <!-- Favorite Button -->
         <ImageView
             android:id="@+id/favoriteButton"

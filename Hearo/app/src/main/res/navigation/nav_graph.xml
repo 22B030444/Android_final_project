@@ -49,31 +49,12 @@
         <action
             android:id="@+id/action_libraryFragment_to_playlistsFragment"
             app:destination="@id/playlistsFragment" />
-        <action android:id="@+id/action_libraryFragment_to_artistsFragment"
+        <action
+            android:id="@+id/action_libraryFragment_to_artistsFragment"
             app:destination="@id/artistsFragment" />
-        <action android:id="@+id/action_libraryFragment_to_downloadsFragment"
+        <action
+            android:id="@+id/action_libraryFragment_to_downloadsFragment"
             app:destination="@id/downloadsFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/artistsFragment"
-        android:name="com.example.hearo.ui.library.ArtistsFragment"
-        android:label="Artists">
-        <action
-            android:id="@+id/action_artistsFragment_to_artistDetailFragment"
-            app:destination="@id/artistDetailFragment" />
-        <action
-            android:id="@+id/action_artistsFragment_to_searchFragment"
-            app:destination="@id/searchFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/downloadsFragment"
-        android:name="com.example.hearo.ui.library.DownloadsFragment"
-        android:label="Downloads">
-        <action
-            android:id="@+id/action_downloadsFragment_to_playerFragment"
-            app:destination="@id/playerFragment" />
     </fragment>
 
     <fragment
@@ -104,11 +85,32 @@
     </fragment>
 
     <fragment
+        android:id="@+id/artistsFragment"
+        android:name="com.example.hearo.ui.library.ArtistsFragment"
+        android:label="Artists">
+        <action
+            android:id="@+id/action_artistsFragment_to_artistDetailFragment"
+            app:destination="@id/artistDetailFragment" />
+        <action
+            android:id="@+id/action_artistsFragment_to_searchFragment"
+            app:destination="@id/searchFragment" />
+    </fragment>
+
+    <fragment
         android:id="@+id/artistDetailFragment"
         android:name="com.example.hearo.ui.artist.ArtistDetailFragment"
         android:label="Artist">
         <action
             android:id="@+id/action_artistDetailFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/downloadsFragment"
+        android:name="com.example.hearo.ui.library.DownloadsFragment"
+        android:label="Downloads">
+        <action
+            android:id="@+id/action_downloadsFragment_to_playerFragment"
             app:destination="@id/playerFragment" />
     </fragment>
 
