@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -39,19 +40,24 @@ class LibraryFragment : Fragment() {
             findNavController().navigate(R.id.action_libraryFragment_to_likedSongsFragment)
         }
 
-        // Остальные пункты (заглушки)
+        // Переход к Playlists
         binding.playlistsCard.setOnClickListener {
-            // TODO: Playlists
+            findNavController().navigate(R.id.action_libraryFragment_to_playlistsFragment)
         }
 
+        // Downloads (заглушка)
         binding.downloadsCard.setOnClickListener {
-            // TODO: Downloads
+            Toast.makeText(requireContext(), "Downloads coming soon", Toast.LENGTH_SHORT).show()
         }
 
+        // Artists (заглушка)
         binding.artistsCard.setOnClickListener {
-            // TODO: Artists
+            Toast.makeText(requireContext(), "Artists coming soon", Toast.LENGTH_SHORT).show()
         }
     }
+
+
+
 
     private fun observeLikedTracksCount() {
         viewModel.likedTracksCount.observe(viewLifecycleOwner) { count ->

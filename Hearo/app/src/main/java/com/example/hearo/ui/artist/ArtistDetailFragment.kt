@@ -15,6 +15,7 @@ import com.bumptech.glide.Glide
 import com.example.hearo.R
 import com.example.hearo.data.model.UniversalArtist
 import com.example.hearo.data.model.UiState
+import com.example.hearo.data.model.UniversalTrack
 import com.example.hearo.databinding.FragmentArtistDetailBinding
 import com.example.hearo.ui.adapter.UniversalTrackAdapter
 
@@ -51,9 +52,35 @@ class ArtistDetailFragment : Fragment() {
             },
             onFavoriteClick = { track ->
                 viewModel.toggleLikeTrack(track)
+            },
+            onLongClick = { track ->
+                showTrackOptionsDialog(track)
             }
         )
     }
+
+    private fun showTrackOptionsDialog(track: UniversalTrack) {
+        val options = arrayOf("Add to playlist", "Add to Liked Songs")
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle(track.name)
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> {
+                        val dialog = com.example.hearo.ui.playlist.AddToPlaylistDialog.newInstance(track)
+                        dialog.show(parentFragmentManager, "AddToPlaylistDialog")
+                    }
+                    1 -> {
+                        viewModel.toggleLikeTrack(track)
+                        Toast.makeText(requireContext(), "Added to Liked Songs", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .show()
+    }
+
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -124,7 +151,7 @@ class ArtistDetailFragment : Fragment() {
             Toast.makeText(requireContext(), "Download coming soon", Toast.LENGTH_SHORT).show()
         }
 
-        binding.playButton.setOnClickListener {
+        binding.playPauseButton.setOnClickListener {
             val tracks = viewModel.getCurrentTracks()
             if (tracks.isNotEmpty()) {
                 val firstPlayable = tracks.firstOrNull { !it.previewUrl.isNullOrEmpty() }
@@ -159,9 +186,8 @@ class ArtistDetailFragment : Fragment() {
                 .into(binding.artistHeaderImage)
         }
 
-        // Monthly listeners
         val listenersText = when {
-            artist.monthlyListeners != null -> "${artist.monthlyListeners} monthly listeners"
+            artist.monthlyListeners != null -> "${artist.monthlyListeners}"
             artist.followersCount > 0 -> formatFollowers(artist.followersCount) + " followers"
             else -> ""
         }
