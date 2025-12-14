@@ -4,9 +4,7 @@ import android.os.Parcelable
 import com.example.hearo.data.model.itunes.ITunesAlbum
 import kotlinx.parcelize.Parcelize
 
-/**
- * Universal album model for working with different sources
- */
+
 @Parcelize
 data class UniversalAlbum(
     val id: String,
@@ -21,9 +19,7 @@ data class UniversalAlbum(
     val tracks: List<UniversalTrack> = emptyList()
 ) : Parcelable
 
-/**
- * Converters
- */
+
 fun ITunesAlbum.toUniversalAlbum(): UniversalAlbum {
     return UniversalAlbum(
         id = collectionId.toString(),

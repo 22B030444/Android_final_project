@@ -5,9 +5,7 @@ import com.example.hearo.data.model.itunes.ITunesTrack
 import com.example.hearo.data.model.jamendo.JamendoTrack
 import kotlinx.parcelize.Parcelize
 
-/**
- * Универсальная модель трека для работы с разными источниками
- */
+
 @Parcelize
 data class UniversalTrack(
     val id: String,
@@ -28,9 +26,6 @@ enum class MusicSource {
     JAMENDO
 }
 
-/**
- * Конвертеры
- */
 fun ITunesTrack.toUniversalTrack(): UniversalTrack {
     return UniversalTrack(
         id = trackId.toString(),

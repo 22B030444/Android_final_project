@@ -28,7 +28,7 @@ data class ITunesTrack(
     val trackName: String,
     val artistName: String,
     val artistId: Long?,
-    val collectionName: String?, // Album name
+    val collectionName: String?,
     val collectionId: Long?,
 
     @SerializedName("artworkUrl100")
@@ -37,10 +37,10 @@ data class ITunesTrack(
     @SerializedName("artworkUrl60")
     val artworkUrl60: String?,
 
-    val previewUrl: String?, // Preview URL (30-90 sec)
+    val previewUrl: String?,
 
     @SerializedName("trackTimeMillis")
-    val trackTimeMillis: Int?, // Duration in milliseconds
+    val trackTimeMillis: Int?,
 
     val primaryGenreName: String?,
     val releaseDate: String?,
@@ -55,9 +55,7 @@ data class ITunesTrack(
     val currency: String?
 ) : Parcelable {
 
-    /**
-     * Get high quality artwork (600x600)
-     */
+
     fun getHighResArtwork(): String? {
         return artworkUrl100?.replace("100x100", "600x600")
     }
@@ -85,7 +83,7 @@ data class ITunesAlbum(
     @SerializedName("artworkUrl60")
     val artworkUrl60: String?,
 
-    val collectionType: String?, // Album, EP, etc.
+    val collectionType: String?,
     val trackCount: Int?,
     val releaseDate: String?,
     val primaryGenreName: String?,
@@ -97,17 +95,13 @@ data class ITunesAlbum(
     val currency: String?
 ) : Parcelable {
 
-    /**
-     * Get high quality artwork (600x600)
-     */
+
     fun getHighResArtwork(): String? {
         return artworkUrl100?.replace("100x100", "600x600")
     }
 }
 
-/**
- * Response for looking up artist's tracks/albums
- */
+
 @Parcelize
 data class ITunesLookupResponse(
     val resultCount: Int,
@@ -116,21 +110,18 @@ data class ITunesLookupResponse(
 
 @Parcelize
 data class ITunesLookupResult(
-    val wrapperType: String, // "artist", "track", "collection"
+    val wrapperType: String,
 
-    // Artist fields
     val artistId: Long?,
     val artistName: String?,
     val artistLinkUrl: String?,
 
-    // Track fields
     val trackId: Long?,
     val trackName: String?,
     val previewUrl: String?,
     @SerializedName("trackTimeMillis")
     val trackTimeMillis: Int?,
 
-    // Album/Collection fields
     val collectionId: Long?,
     val collectionName: String?,
     @SerializedName("artworkUrl100")

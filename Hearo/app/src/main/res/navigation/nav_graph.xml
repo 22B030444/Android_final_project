@@ -47,6 +47,9 @@
         <action
             android:id="@+id/action_libraryFragment_to_likedSongsFragment"
             app:destination="@id/likedSongsFragment" />
+        <action
+            android:id="@+id/action_libraryFragment_to_playlistsFragment"
+            app:destination="@id/playlistsFragment" />
     </fragment>
 
     <!-- Liked Songs Screen -->
@@ -56,6 +59,26 @@
         android:label="Liked Songs">
         <action
             android:id="@+id/action_likedSongsFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
+
+    <!-- Playlists Screen -->
+    <fragment
+        android:id="@+id/playlistsFragment"
+        android:name="com.example.hearo.ui.playlist.PlaylistsFragment"
+        android:label="Playlists">
+        <action
+            android:id="@+id/action_playlistsFragment_to_playlistDetailFragment"
+            app:destination="@id/playlistDetailFragment" />
+    </fragment>
+
+    <!-- Playlist Detail Screen -->
+    <fragment
+        android:id="@+id/playlistDetailFragment"
+        android:name="com.example.hearo.ui.playlist.PlaylistDetailFragment"
+        android:label="Playlist">
+        <action
+            android:id="@+id/action_playlistDetailFragment_to_playerFragment"
             app:destination="@id/playerFragment" />
     </fragment>
 
@@ -76,3 +99,5 @@
         android:label="Player" />
 
 </navigation>
+
+

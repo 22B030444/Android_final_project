@@ -11,10 +11,6 @@ class AppPreferences(context: Context) {
         Context.MODE_PRIVATE
     )
 
-    // ========================================
-    // SPOTIFY AUTH TOKENS
-    // ========================================
-
     var accessToken: String?
         get() = prefs.getString(Constants.KEY_ACCESS_TOKEN, null)
         set(value) = prefs.edit().putString(Constants.KEY_ACCESS_TOKEN, value).apply()
@@ -41,9 +37,6 @@ class AppPreferences(context: Context) {
             .apply()
     }
 
-    // ========================================
-    // ИСТОРИЯ ПОИСКА (SharedPreferences - 4 балла)
-    // ========================================
 
     fun saveSearchQuery(query: String) {
         val history = getSearchHistory().toMutableList()
@@ -64,9 +57,6 @@ class AppPreferences(context: Context) {
         prefs.edit().remove("search_history").apply()
     }
 
-    // ========================================
-    // НАСТРОЙКИ
-    // ========================================
 
     var isDarkTheme: Boolean
         get() = prefs.getBoolean("dark_theme", true)

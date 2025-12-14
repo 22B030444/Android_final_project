@@ -62,7 +62,6 @@ class PlayerFragment : Fragment() {
             return
         }
 
-        // Устанавливаем список треков
         if (!trackList.isNullOrEmpty()) {
             viewModel.setTrackList(trackList, currentIndex)
         }

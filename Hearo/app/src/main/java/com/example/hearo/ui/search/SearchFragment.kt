@@ -57,9 +57,35 @@ class SearchFragment : Fragment() {
             },
             onFavoriteClick = { track ->
                 viewModel.toggleLocalLike(track)
+            },
+            onLongClick = { track ->
+                showTrackOptionsDialog(track)
             }
         )
     }
+
+    private fun showTrackOptionsDialog(track: UniversalTrack) {
+        val options = arrayOf("Add to playlist", "Add to Liked Songs")
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle(track.name)
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> {
+                        val dialog = com.example.hearo.ui.playlist.AddToPlaylistDialog.newInstance(track)
+                        dialog.show(parentFragmentManager, "AddToPlaylistDialog")
+                    }
+                    1 -> {
+                        viewModel.toggleLocalLike(track)
+                        Toast.makeText(requireContext(), "Added to Liked Songs", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .show()
+    }
+
+
+
 
     private val albumAdapter by lazy {
         UniversalAlbumAdapter { album ->
