@@ -39,7 +39,7 @@ fun ITunesArtist.toUniversalArtist(): UniversalArtist {
     return UniversalArtist(
         id = artistId.toString(),
         name = artistName,
-        imageUrl = null, // Will be loaded separately
+        imageUrl = null,
         followersCount = 0,
         monthlyListeners = null,
         genres = listOfNotNull(primaryGenreName),

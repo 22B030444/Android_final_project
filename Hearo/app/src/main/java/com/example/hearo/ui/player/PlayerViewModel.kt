@@ -6,12 +6,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hearo.data.model.UniversalTrack
 import com.example.hearo.data.repository.DownloadsRepository
-import com.example.hearo.data.repository.HistoryRepository
 import com.example.hearo.data.repository.MusicRepository
+import com.example.hearo.service.MusicPlayerService
 import com.example.hearo.utils.DownloadProgress
 import com.example.hearo.utils.TrackDownloadManager
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -25,27 +23,23 @@ enum class RepeatMode {
 class PlayerViewModel(application: Application) : AndroidViewModel(application) {
 
     private val musicRepository = MusicRepository(application)
-    private val historyRepository = HistoryRepository(application)
     private val downloadsRepository = DownloadsRepository(application)
-    val mediaPlayer = MediaPlayerManager()
 
     private val downloadManager = TrackDownloadManager(application)
     val downloadProgress: StateFlow<DownloadProgress> = downloadManager.downloadProgress
 
-    private val _currentTrack = MutableStateFlow<UniversalTrack?>(null)
-    val currentTrack: StateFlow<UniversalTrack?> = _currentTrack
+    val currentTrack: StateFlow<UniversalTrack?> = MusicPlayerService.currentTrack
+    val isPlaying: StateFlow<Boolean> = MusicPlayerService.isPlaying
+    val isPreparing: StateFlow<Boolean> = MusicPlayerService.isPreparing
+    val currentPosition: StateFlow<Int> = MusicPlayerService.currentPosition
+    val duration: StateFlow<Int> = MusicPlayerService.duration
+    val error: StateFlow<String?> = MusicPlayerService.error
 
     private val _isLiked = MutableStateFlow(false)
     val isLiked: StateFlow<Boolean> = _isLiked
 
     private val _isDownloaded = MutableStateFlow(false)
     val isDownloaded: StateFlow<Boolean> = _isDownloaded
-
-    private val _currentPosition = MutableStateFlow(0)
-    val currentPosition: StateFlow<Int> = _currentPosition
-
-    private val _duration = MutableStateFlow(0)
-    val duration: StateFlow<Int> = _duration
 
     private val _showMessage = MutableStateFlow<String?>(null)
     val showMessage: StateFlow<String?> = _showMessage
@@ -56,140 +50,84 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private val _repeatMode = MutableStateFlow(RepeatMode.OFF)
     val repeatMode: StateFlow<RepeatMode> = _repeatMode
 
-    private var progressUpdateJob: Job? = null
+    init {
 
-    private var trackList: List<UniversalTrack> = emptyList()
-    private var currentTrackIndex: Int = 0
-    private var shuffledIndices: List<Int> = emptyList()
-    private var currentShufflePosition: Int = 0
+        _isShuffleEnabled.value = MusicPlayerService.isShuffleEnabled()
+        _repeatMode.value = when (MusicPlayerService.getRepeatMode()) {
+            1 -> RepeatMode.ALL
+            2 -> RepeatMode.ONE
+            else -> RepeatMode.OFF
+        }
+    }
 
     fun setTrackList(tracks: List<UniversalTrack>, startIndex: Int = 0) {
-        trackList = tracks
-        currentTrackIndex = startIndex.coerceIn(0, tracks.size - 1)
-        shuffledIndices = trackList.indices.shuffled()
-        currentShufflePosition = shuffledIndices.indexOf(currentTrackIndex)
-        Log.d("PlayerViewModel", "Track list set: ${tracks.size} tracks, starting at index $currentTrackIndex")
+        MusicPlayerService.setTrackList(tracks, startIndex)
     }
 
     fun setTrack(track: UniversalTrack) {
         Log.d("PlayerViewModel", "=== SET TRACK: ${track.name} ===")
-        _currentTrack.value = track
+
         checkIfLiked(track.id)
         checkIfDownloaded(track.id)
-
-        viewModelScope.launch {
-            historyRepository.addToHistory(track)
-        }
 
         if (track.previewUrl.isNullOrEmpty()) {
             _showMessage.value = "No preview available for this track"
             return
         }
 
-        mediaPlayer.play(track.previewUrl)
-        updateDuration(track)
-        startProgressUpdate()
+        MusicPlayerService.play(track)
     }
 
     fun togglePlayPause() {
-        if (mediaPlayer.isPlaying.value) {
-            mediaPlayer.pause()
-            stopProgressUpdate()
-        } else {
-            mediaPlayer.resume()
-            startProgressUpdate()
-        }
+        MusicPlayerService.togglePlayPause()
     }
 
     fun playPrevious() {
-        if (trackList.isEmpty()) {
-            _showMessage.value = "No previous track available"
-            return
+        MusicPlayerService.playPrevious()
+        MusicPlayerService.currentTrack.value?.let {
+            checkIfLiked(it.id)
+            checkIfDownloaded(it.id)
         }
-
-        if (mediaPlayer.getCurrentPosition() > 3000) {
-            mediaPlayer.seekTo(0)
-            _currentPosition.value = 0
-            return
-        }
-
-        if (_isShuffleEnabled.value) {
-            currentShufflePosition = if (currentShufflePosition > 0) {
-                currentShufflePosition - 1
-            } else {
-                shuffledIndices.size - 1
-            }
-            currentTrackIndex = shuffledIndices[currentShufflePosition]
-        } else {
-            currentTrackIndex = if (currentTrackIndex > 0) {
-                currentTrackIndex - 1
-            } else {
-                trackList.size - 1
-            }
-        }
-
-        val previousTrack = trackList[currentTrackIndex]
-        Log.d("PlayerViewModel", "Playing previous: ${previousTrack.name} (index: $currentTrackIndex)")
-        setTrack(previousTrack)
     }
 
     fun playNext() {
-        if (trackList.isEmpty()) {
-            _showMessage.value = "No next track available"
-            return
+        MusicPlayerService.playNext()
+        MusicPlayerService.currentTrack.value?.let {
+            checkIfLiked(it.id)
+            checkIfDownloaded(it.id)
         }
-
-        if (_isShuffleEnabled.value) {
-            currentShufflePosition = (currentShufflePosition + 1) % shuffledIndices.size
-            currentTrackIndex = shuffledIndices[currentShufflePosition]
-        } else {
-            currentTrackIndex = (currentTrackIndex + 1) % trackList.size
-        }
-
-        val nextTrack = trackList[currentTrackIndex]
-        Log.d("PlayerViewModel", "Playing next: ${nextTrack.name} (index: $currentTrackIndex)")
-        setTrack(nextTrack)
     }
 
     fun toggleShuffle() {
-        _isShuffleEnabled.value = !_isShuffleEnabled.value
-
-        if (_isShuffleEnabled.value) {
-            shuffledIndices = trackList.indices.shuffled()
-            currentShufflePosition = shuffledIndices.indexOf(currentTrackIndex)
-            _showMessage.value = "Shuffle on"
-            Log.d("PlayerViewModel", "Shuffle enabled")
-        } else {
-            _showMessage.value = "Shuffle off"
-            Log.d("PlayerViewModel", "Shuffle disabled")
-        }
+        val enabled = MusicPlayerService.toggleShuffle()
+        _isShuffleEnabled.value = enabled
+        _showMessage.value = if (enabled) "Shuffle on" else "Shuffle off"
     }
 
     fun toggleRepeat() {
-        _repeatMode.value = when (_repeatMode.value) {
-            RepeatMode.OFF -> {
+        val mode = MusicPlayerService.toggleRepeat()
+        _repeatMode.value = when (mode) {
+            1 -> {
                 _showMessage.value = "Repeat all"
                 RepeatMode.ALL
             }
-            RepeatMode.ALL -> {
+            2 -> {
                 _showMessage.value = "Repeat one"
                 RepeatMode.ONE
             }
-            RepeatMode.ONE -> {
+            else -> {
                 _showMessage.value = "Repeat off"
                 RepeatMode.OFF
             }
         }
-        Log.d("PlayerViewModel", "Repeat mode: ${_repeatMode.value}")
     }
 
     fun seekTo(position: Int) {
-        mediaPlayer.seekTo(position)
-        _currentPosition.value = position
+        MusicPlayerService.seekTo(position)
     }
 
     fun toggleLike() {
-        val track = _currentTrack.value ?: return
+        val track = MusicPlayerService.currentTrack.value ?: return
         viewModelScope.launch {
             musicRepository.toggleLocalLike(track)
             checkIfLiked(track.id)
@@ -197,7 +135,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun downloadTrack() {
-        val track = _currentTrack.value ?: return
+        val track = MusicPlayerService.currentTrack.value ?: return
 
         viewModelScope.launch {
             if (downloadsRepository.isTrackDownloaded(track.id)) {
@@ -217,14 +155,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    private fun updateDuration(track: UniversalTrack) {
-        viewModelScope.launch {
-            delay(500)
-            val realDuration = mediaPlayer.getDuration()
-            _duration.value = if (realDuration > 0) realDuration else track.durationMs
-        }
-    }
-
     private fun checkIfLiked(trackId: String) {
         viewModelScope.launch {
             _isLiked.value = musicRepository.isTrackLikedLocally(trackId)
@@ -241,60 +171,8 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         _showMessage.value = null
     }
 
-    private fun onTrackCompleted() {
-        when (_repeatMode.value) {
-            RepeatMode.ONE -> {
-                val track = _currentTrack.value
-                if (track != null) {
-                    setTrack(track)
-                }
-            }
-            RepeatMode.ALL -> {
-                playNext()
-            }
-            RepeatMode.OFF -> {
-                if (_isShuffleEnabled.value) {
-                    if (currentShufflePosition < shuffledIndices.size - 1) {
-                        playNext()
-                    }
-                } else {
-                    if (currentTrackIndex < trackList.size - 1) {
-                        playNext()
-                    }
-                }
-            }
-        }
-    }
-
-    private fun startProgressUpdate() {
-        stopProgressUpdate()
-        progressUpdateJob = viewModelScope.launch {
-            while (mediaPlayer.isPlaying.value) {
-                val currentPos = mediaPlayer.getCurrentPosition()
-                _currentPosition.value = currentPos
-
-                val duration = mediaPlayer.getDuration()
-                if (duration > 0 && currentPos >= duration - 100) {
-                    stopProgressUpdate()
-                    _currentPosition.value = 0
-                    onTrackCompleted()
-                    break
-                }
-
-                delay(100)
-            }
-        }
-    }
-
-    private fun stopProgressUpdate() {
-        progressUpdateJob?.cancel()
-        progressUpdateJob = null
-    }
-
     override fun onCleared() {
         super.onCleared()
-        mediaPlayer.release()
         downloadManager.release()
-        stopProgressUpdate()
     }
 }

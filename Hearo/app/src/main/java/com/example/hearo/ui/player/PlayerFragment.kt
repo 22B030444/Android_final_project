@@ -2,23 +2,22 @@ package com.example.hearo.ui.player
 
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.hearo.R
-import com.example.hearo.data.model.UniversalTrack
 import com.example.hearo.data.model.MusicSource
+import com.example.hearo.data.model.UniversalTrack
 import com.example.hearo.databinding.FragmentPlayerBinding
 import kotlinx.coroutines.launch
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import androidx.core.content.ContextCompat
-import com.example.hearo.utils.DownloadProgress
 
 class PlayerFragment : Fragment() {
 
@@ -81,15 +80,6 @@ class PlayerFragment : Fragment() {
             .error(R.color.surface_dark)
             .into(binding.albumCoverImage)
 
-        val duration = if (track.canDownloadFull) {
-            track.durationMs
-        } else {
-            30000
-        }
-
-        binding.totalTimeText.text = formatTime(duration)
-        binding.seekBar.max = duration
-
         if (track.canDownloadFull && track.source == MusicSource.JAMENDO) {
             binding.downloadButton.setColorFilter(
                 ContextCompat.getColor(requireContext(), R.color.jamendo_badge)
@@ -134,9 +124,6 @@ class PlayerFragment : Fragment() {
             viewModel.downloadTrack()
         }
 
-        binding.menuButton.setOnClickListener {
-        }
-
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
@@ -156,74 +143,36 @@ class PlayerFragment : Fragment() {
 
     private fun observeStates() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.mediaPlayer.isPlaying.collect { isPlaying ->
-                if (isPlaying) {
-                    binding.playPauseButton.setImageResource(R.drawable.ic_pause)
-                } else {
-                    binding.playPauseButton.setImageResource(R.drawable.ic_play)
-                }
+            viewModel.isPlaying.collect { isPlaying ->
+                binding.playPauseButton.setImageResource(
+                    if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+                )
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.isShuffleEnabled.collect { isEnabled ->
-                if (isEnabled) {
-                    binding.shuffleButton.setColorFilter(
-                        ContextCompat.getColor(requireContext(), R.color.purple_primary)
+                binding.shuffleButton.setColorFilter(
+                    ContextCompat.getColor(
+                        requireContext(),
+                        if (isEnabled) R.color.purple_primary else R.color.white
                     )
-                } else {
-                    binding.shuffleButton.setColorFilter(
-                        ContextCompat.getColor(requireContext(), R.color.white)
-                    )
-                }
+                )
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.repeatMode.collect { mode ->
-                when (mode) {
-                    RepeatMode.OFF -> {
-                        binding.repeatButton.setImageResource(R.drawable.ic_repeat)
-                        binding.repeatButton.setColorFilter(
-                            ContextCompat.getColor(requireContext(), R.color.white)
-                        )
-                    }
-                    RepeatMode.ALL -> {
-                        binding.repeatButton.setImageResource(R.drawable.ic_repeat)
-                        binding.repeatButton.setColorFilter(
-                            ContextCompat.getColor(requireContext(), R.color.purple_primary)
-                        )
-                    }
-                    RepeatMode.ONE -> {
-                        binding.repeatButton.setImageResource(R.drawable.ic_repeat)
-                        binding.repeatButton.setColorFilter(
-                            ContextCompat.getColor(requireContext(), R.color.purple_primary)
-                        )
-                    }
-                }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.mediaPlayer.isPreparing.collect { isPreparing ->
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.mediaPlayer.error.collect { error ->
-                error?.let {
-                    Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                }
+                val color = if (mode != RepeatMode.OFF) R.color.purple_primary else R.color.white
+                binding.repeatButton.setColorFilter(ContextCompat.getColor(requireContext(), color))
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.isLiked.collect { isLiked ->
-                if (isLiked) {
-                    binding.favoriteButton.setImageResource(R.drawable.ic_favorite)
-                } else {
-                    binding.favoriteButton.setImageResource(R.drawable.ic_favorite_border)
-                }
+                binding.favoriteButton.setImageResource(
+                    if (isLiked) R.drawable.ic_favorite else R.drawable.ic_favorite_border
+                )
             }
         }
 
@@ -245,9 +194,7 @@ class PlayerFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.currentTrack.collect { track ->
-                track?.let {
-                    setupUI(it)
-                }
+                track?.let { setupUI(it) }
             }
         }
 
@@ -260,6 +207,13 @@ class PlayerFragment : Fragment() {
             }
         }
 
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.error.collect { error ->
+                error?.let {
+                    Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.isDownloaded.collect { isDownloaded ->
@@ -302,14 +256,8 @@ class PlayerFragment : Fragment() {
         return String.format("%d:%02d", minutes, seconds)
     }
 
-    override fun onPause() {
-        super.onPause()
-        viewModel.mediaPlayer.pause()
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 }
-
