@@ -11,7 +11,6 @@
     android:paddingTop="8dp"
     android:paddingBottom="8dp">
 
-    <!-- Фото артиста (круглое) -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/artistImageCard"
         android:layout_width="64dp"
@@ -33,7 +32,6 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Имя артиста -->
     <TextView
         android:id="@+id/artistName"
         android:layout_width="0dp"
@@ -50,7 +48,6 @@
         app:layout_constraintStart_toEndOf="@id/artistImageCard"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Количество подписчиков -->
     <TextView
         android:id="@+id/followersText"
         android:layout_width="0dp"
@@ -66,7 +63,6 @@
         app:layout_constraintStart_toEndOf="@id/artistImageCard"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Жанры -->
     <TextView
         android:id="@+id/genresText"
         android:layout_width="0dp"

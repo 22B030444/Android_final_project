@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Цвета из вашего дизайна -->
     <color name="purple_primary">#D946EF</color>
     <color name="purple_dark">#A020F0</color>
     <color name="surface_dark">#2D1B3D</color>

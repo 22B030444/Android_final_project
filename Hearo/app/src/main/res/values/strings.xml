@@ -1,18 +1,15 @@
 <resources>
     <string name="app_name">Hearo</string>
 
-    <!-- Bottom Navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_search">Search</string>
     <string name="nav_library">Your Library</string>
 
-    <!-- Search -->
     <string name="search_hint">Search song, playlist, artist…</string>
     <string name="recent_searches">Recent searches</string>
     <string name="clear_history">Clear history</string>
     <string name="browse">Browse</string>
 
-    <!-- Library -->
     <string name="library">Library</string>
     <string name="playlists">Playlists</string>
     <string name="downloads">Downloads</string>
@@ -20,10 +17,8 @@
     <string name="artists">Artists</string>
     <string name="recently_played">Recently Played</string>
 
-    <!-- Player -->
     <string name="now_playing">Now Playing</string>
 
-    <!-- Errors -->
     <string name="error_network">Network error. Please check your connection.</string>
     <string name="error_unknown">Something went wrong</string>
 </resources>

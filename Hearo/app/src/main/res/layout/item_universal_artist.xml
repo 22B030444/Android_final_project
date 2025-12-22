@@ -11,7 +11,6 @@
     android:paddingTop="12dp"
     android:paddingBottom="12dp">
 
-    <!-- Artist photo (circular) -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/artistImageCard"
         android:layout_width="64dp"
@@ -34,7 +33,6 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Artist name -->
     <TextView
         android:id="@+id/artistName"
         android:layout_width="0dp"
@@ -53,7 +51,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_chainStyle="packed" />
 
-    <!-- Genres -->
     <TextView
         android:id="@+id/genresText"
         android:layout_width="0dp"

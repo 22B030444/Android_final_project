@@ -12,7 +12,6 @@
     android:paddingEnd="16dp"
     android:background="?attr/selectableItemBackground">
 
-    <!-- Playlist Image -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="48dp"
         android:layout_height="48dp"
@@ -32,7 +31,6 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Playlist Info -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"

@@ -13,7 +13,6 @@
         android:padding="16dp"
         android:paddingBottom="100dp">
 
-        <!-- Header -->
         <LinearLayout
             android:id="@+id/headerLayout"
             android:layout_width="0dp"
@@ -33,16 +32,33 @@
                 android:textSize="28sp"
                 android:textStyle="bold" />
 
-            <ImageView
-                android:id="@+id/profileImage"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@mipmap/ic_launcher"
-                android:contentDescription="Profile" />
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/profileImageCard"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+
+                app:cardCornerRadius="60dp"
+                app:cardElevation="8dp"
+                app:strokeWidth="3dp"
+                app:strokeColor="@color/purple_primary"
+                app:layout_constraintTop_toBottomOf="@+id/headerLayout"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/headerLayout">
+
+                <ImageView
+                    android:id="@+id/profileImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/default_profile"
+                    android:contentDescription="Profile" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+
 
         </LinearLayout>
 
-        <!-- Playlists -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/playlistsCard"
             android:layout_width="0dp"
@@ -104,7 +120,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Downloads -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/downloadsCard"
             android:layout_width="0dp"
@@ -166,7 +181,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Liked Songs -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/likedSongsCard"
             android:layout_width="0dp"
@@ -228,7 +242,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Artists -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/artistsCard"
             android:layout_width="0dp"

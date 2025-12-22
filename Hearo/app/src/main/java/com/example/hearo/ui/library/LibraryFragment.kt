@@ -49,6 +49,11 @@ class LibraryFragment : Fragment() {
         binding.downloadsCard.setOnClickListener {
             findNavController().navigate(R.id.action_libraryFragment_to_downloadsFragment)
         }
+
+        binding.profileImage.setOnClickListener {
+            findNavController().navigate(R.id.action_libraryFragment_to_profileFragment)
+        }
+
     }
 
     private fun observeCounts() {

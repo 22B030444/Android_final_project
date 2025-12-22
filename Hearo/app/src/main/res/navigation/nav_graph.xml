@@ -55,6 +55,10 @@
         <action
             android:id="@+id/action_libraryFragment_to_downloadsFragment"
             app:destination="@id/downloadsFragment" />
+        <action android:id="@+id/action_libraryFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
+
+
     </fragment>
 
     <fragment
@@ -127,5 +131,23 @@
         android:id="@+id/playerFragment"
         android:name="com.example.hearo.ui.player.PlayerFragment"
         android:label="Player" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.hearo.ui.profile.ProfileFragment"
+        android:label="Profile">
+        <action
+            android:id="@+id/action_profileFragment_to_likedSongsFragment"
+            app:destination="@id/likedSongsFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_playlistsFragment"
+            app:destination="@id/playlistsFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_artistsFragment"
+            app:destination="@id/artistsFragment" />
+    </fragment>
+
+
+
 
 </navigation>

@@ -26,7 +26,6 @@
             app:collapsedTitleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
             app:expandedTitleTextAppearance="@style/TextAppearance.Material3.HeadlineLarge">
 
-            <!-- Artist Header Image with gradient overlay -->
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -40,7 +39,6 @@
                     tools:src="@tools:sample/backgrounds/scenic"
                     android:contentDescription="Artist image" />
 
-                <!-- Gradient overlay -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -48,7 +46,6 @@
 
             </FrameLayout>
 
-            <!-- Toolbar -->
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
@@ -72,7 +69,6 @@
             android:orientation="vertical"
             android:paddingBottom="100dp">
 
-            <!-- Artist Name (shown when collapsed) -->
             <TextView
                 android:id="@+id/artistNameText"
                 android:layout_width="wrap_content"
@@ -85,9 +81,6 @@
                 android:visibility="gone"
                 tools:text="MAROON 5" />
 
-
-
-            <!-- Monthly Listeners -->
             <TextView
                 android:id="@+id/monthlyListenersText"
                 android:layout_width="wrap_content"
@@ -98,7 +91,6 @@
                 android:textSize="14sp"
                 />
 
-            <!-- Action Buttons Row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -108,7 +100,6 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <!-- Like Button -->
                 <ImageView
                     android:id="@+id/likeButton"
                     android:layout_width="40dp"
@@ -118,7 +109,6 @@
                     app:tint="@color/white"
                     android:contentDescription="Like" />
 
-                <!-- Download Button -->
                 <ImageView
                     android:id="@+id/downloadButton"
                     android:layout_width="40dp"
@@ -148,7 +138,6 @@
 
             </LinearLayout>
 
-            <!-- Songs Section Header -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -159,7 +148,6 @@
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
-            <!-- Songs RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/songsRecyclerView"
                 android:layout_width="match_parent"
@@ -169,7 +157,6 @@
                 tools:listitem="@layout/item_universal_track"
                 tools:itemCount="6" />
 
-            <!-- Loading indicator -->
             <ProgressBar
                 android:id="@+id/progressBar"
                 android:layout_width="wrap_content"
@@ -179,7 +166,6 @@
                 android:indeterminateTint="@color/purple_primary"
                 android:visibility="gone" />
 
-            <!-- Empty state -->
             <TextView
                 android:id="@+id/emptyStateText"
                 android:layout_width="wrap_content"
