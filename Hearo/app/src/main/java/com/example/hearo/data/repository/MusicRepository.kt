@@ -7,8 +7,6 @@ import com.example.hearo.data.api.JamendoRetrofitClient
 import com.example.hearo.data.database.MusicDatabase
 import com.example.hearo.data.database.entity.AlbumEntity
 import com.example.hearo.data.database.entity.ArtistEntity
-import com.example.hearo.data.database.entity.toEntity
-import com.example.hearo.data.database.entity.toTrack
 import com.example.hearo.data.model.MusicSource
 import com.example.hearo.data.model.UniversalAlbum
 import com.example.hearo.data.model.UniversalArtist
@@ -252,15 +250,37 @@ class MusicRepository(context: Context) {
 
     fun getLocalLikedTracks(): Flow<List<UniversalTrack>> {
         return trackDao.getAllLikedTracks().map { entities ->
-            entities.map { it.toTrack().toUniversalTrack() }
+            entities.map { entity ->
+                UniversalTrack(
+                    id = entity.id,
+                    name = entity.name,
+                    artistName = entity.artistName,
+                    albumName = entity.albumName,
+                    imageUrl = entity.imageUrl,
+                    previewUrl = entity.previewUrl,
+                    downloadUrl = null,
+                    durationMs = entity.durationMs,
+                    source = MusicSource.ITUNES,
+                    canDownloadFull = false
+                )
+            }
         }
     }
 
     suspend fun addTrackToLocal(track: UniversalTrack): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val oldTrack = track.toOldTrackModel()
-                trackDao.insertTrack(oldTrack.toEntity())
+                val entity = com.example.hearo.data.database.entity.TrackEntity(
+                    id = track.id,
+                    name = track.name,
+                    artistName = track.artistName,
+                    albumName = track.albumName,
+                    imageUrl = track.imageUrl,
+                    previewUrl = track.previewUrl,
+                    durationMs = track.durationMs,
+                    spotifyUri = "track:${track.id}"  // или можно переименовать поле
+                )
+                trackDao.insertTrack(entity)
                 Log.d("MusicRepository", "Added to local: ${track.name}")
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -427,45 +447,3 @@ class MusicRepository(context: Context) {
     }
 }
 
-private fun UniversalTrack.toOldTrackModel(): com.example.hearo.data.model.spotify.Track {
-    return com.example.hearo.data.model.spotify.Track(
-        id = id,
-        name = name,
-        artists = listOf(
-            com.example.hearo.data.model.spotify.Artist(
-                id = "0",
-                name = artistName,
-                externalUrls = null
-            )
-        ),
-        album = com.example.hearo.data.model.spotify.Album(
-            id = "0",
-            name = albumName,
-            images = listOfNotNull(
-                imageUrl?.let {
-                    com.example.hearo.data.model.spotify.SpotifyImage(it, 600, 600)
-                }
-            ),
-            releaseDate = null
-        ),
-        durationMs = durationMs,
-        previewUrl = previewUrl,
-        uri = "track:$id",
-        externalUrls = null
-    )
-}
-
-private fun com.example.hearo.data.model.spotify.Track.toUniversalTrack(): UniversalTrack {
-    return UniversalTrack(
-        id = id,
-        name = name,
-        artistName = artists.firstOrNull()?.name ?: "Unknown",
-        albumName = album.name,
-        imageUrl = album.images.firstOrNull()?.url,
-        previewUrl = previewUrl,
-        downloadUrl = null,
-        durationMs = durationMs,
-        source = MusicSource.ITUNES,
-        canDownloadFull = false
-    )
-}
