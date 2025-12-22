@@ -4,8 +4,11 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.hearo.data.model.UniversalTrack
 import com.example.hearo.data.repository.DownloadsRepository
+import com.example.hearo.data.repository.HistoryRepository
 import com.example.hearo.data.repository.MusicRepository
 import com.example.hearo.data.repository.PlaylistRepository
 import kotlinx.coroutines.launch
@@ -15,6 +18,7 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
     private val musicRepository = MusicRepository(application)
     private val downloadsRepository = DownloadsRepository(application)
     private val playlistRepository = PlaylistRepository(application)
+    private val historyRepository = HistoryRepository(application)
 
     private val _likedSongsCount = MutableLiveData<Int>()
     val likedSongsCount: LiveData<Int> = _likedSongsCount
@@ -27,6 +31,9 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
 
     private val _playlistsCount = MutableLiveData<Int>()
     val playlistsCount: LiveData<Int> = _playlistsCount
+
+    val recentlyPlayed: LiveData<List<UniversalTrack>> =
+        historyRepository.getRecentlyPlayed(10).asLiveData()
 
     init {
         loadCounts()
