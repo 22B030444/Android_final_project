@@ -57,6 +57,9 @@
             app:destination="@id/downloadsFragment" />
         <action android:id="@+id/action_libraryFragment_to_profileFragment"
             app:destination="@id/profileFragment" />
+        <action
+            android:id="@+id/action_libraryFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
 
 
     </fragment>
