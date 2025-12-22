@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/background_gradient">
 
-    <!-- Search bar -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/searchCard"
         android:layout_width="0dp"
@@ -37,7 +36,6 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Tabs for search type (Tracks / Albums / Artists) -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/searchTypeTabLayout"
         android:layout_width="0dp"
@@ -72,7 +70,6 @@
 
     </com.google.android.material.tabs.TabLayout>
 
-    <!-- Source filter chips -->
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/sourceChipGroup"
         android:layout_width="wrap_content"
@@ -107,7 +104,6 @@
 
     </com.google.android.material.chip.ChipGroup>
 
-    <!-- Progress Bar -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
@@ -119,7 +115,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Empty State -->
     <TextView
         android:id="@+id/emptyStateText"
         android:layout_width="wrap_content"
@@ -134,7 +129,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- RecyclerView for results -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"

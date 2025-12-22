@@ -7,7 +7,6 @@
     android:background="@drawable/background_gradient"
     android:padding="24dp">
 
-    <!-- Логотип -->
     <ImageView
         android:id="@+id/logoImage"
         android:layout_width="250dp"
@@ -22,8 +21,6 @@
         />
 
 
-
-    <!-- Username Label -->
     <TextView
         android:id="@+id/usernameLabel"
         android:layout_width="0dp"
@@ -36,7 +33,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Username Input -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/usernameCard"
         android:layout_width="0dp"
@@ -80,7 +76,6 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Password Label -->
     <TextView
         android:id="@+id/passwordLabel"
         android:layout_width="0dp"
@@ -94,7 +89,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Password Input -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/passwordCard"
         android:layout_width="0dp"
@@ -138,7 +132,6 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Forgot Password -->
     <TextView
         android:id="@+id/forgotPasswordText"
         android:layout_width="wrap_content"
@@ -151,7 +144,6 @@
         app:layout_constraintTop_toBottomOf="@id/passwordCard"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Login Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/loginButton"
         android:layout_width="0dp"
@@ -167,7 +159,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Or Continue With -->
     <LinearLayout
         android:id="@+id/dividerLayout"
         android:layout_width="0dp"
@@ -202,7 +193,6 @@
 
     </LinearLayout>
 
-    <!-- Social Buttons -->
     <LinearLayout
         android:id="@+id/socialButtonsLayout"
         android:layout_width="wrap_content"
@@ -213,7 +203,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Google Button -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/googleButton"
             android:layout_width="64dp"
@@ -232,7 +221,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Apple Button -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/appleButton"
             android:layout_width="64dp"
@@ -252,7 +240,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Facebook Button -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/facebookButton"
             android:layout_width="64dp"
@@ -272,7 +259,6 @@
 
     </LinearLayout>
 
-    <!-- Progress Bar (скрытый) -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"

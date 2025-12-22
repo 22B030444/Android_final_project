@@ -19,7 +19,6 @@
             android:orientation="vertical"
             android:paddingBottom="100dp">
 
-            <!-- Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -48,7 +47,6 @@
 
             </LinearLayout>
 
-            <!-- Recently Played Section -->
             <LinearLayout
                 android:id="@+id/recentlyPlayedSection"
                 android:layout_width="match_parent"
@@ -107,7 +105,6 @@
 
             </LinearLayout>
 
-            <!-- Trending Section -->
             <LinearLayout
                 android:id="@+id/trendingSection"
                 android:layout_width="match_parent"
@@ -138,7 +135,6 @@
 
             </LinearLayout>
 
-            <!-- Recommendations Section -->
             <LinearLayout
                 android:id="@+id/recommendationsSection"
                 android:layout_width="match_parent"

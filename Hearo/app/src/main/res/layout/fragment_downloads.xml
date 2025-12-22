@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/background_gradient">
 
-    <!-- Header -->
     <LinearLayout
         android:id="@+id/headerLayout"
         android:layout_width="0dp"
@@ -49,7 +48,6 @@
 
     </LinearLayout>
 
-    <!-- Search Bar -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/searchCard"
         android:layout_width="0dp"
@@ -97,7 +95,6 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Storage Info -->
     <LinearLayout
         android:id="@+id/storageInfoLayout"
         android:layout_width="0dp"
@@ -131,7 +128,6 @@
 
     </LinearLayout>
 
-    <!-- Empty State -->
     <LinearLayout
         android:id="@+id/emptyStateLayout"
         android:layout_width="wrap_content"
@@ -169,7 +165,6 @@
 
     </LinearLayout>
 
-    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"

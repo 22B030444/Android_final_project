@@ -11,7 +11,6 @@
     android:paddingTop="12dp"
     android:paddingBottom="12dp">
 
-    <!-- Playlist cover -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/playlistImageCard"
         android:layout_width="56dp"
@@ -35,7 +34,6 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Playlist name -->
     <TextView
         android:id="@+id/playlistName"
         android:layout_width="0dp"
@@ -54,7 +52,6 @@
         app:layout_constraintEnd_toStartOf="@id/arrowIcon"
         app:layout_constraintVertical_chainStyle="packed" />
 
-    <!-- Tracks count -->
     <TextView
         android:id="@+id/tracksCount"
         android:layout_width="0dp"
@@ -71,7 +68,6 @@
         app:layout_constraintStart_toEndOf="@id/playlistImageCard"
         app:layout_constraintEnd_toStartOf="@id/arrowIcon" />
 
-    <!-- Arrow icon -->
     <ImageView
         android:id="@+id/arrowIcon"
         android:layout_width="24dp"

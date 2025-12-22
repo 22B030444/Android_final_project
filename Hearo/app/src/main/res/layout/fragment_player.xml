@@ -8,7 +8,6 @@
     android:background="@drawable/background_gradient"
     android:padding="24dp">
 
-    <!-- Back Button -->
     <ImageView
         android:id="@+id/backButton"
         android:layout_width="40dp"
@@ -20,7 +19,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Menu Button (три точки) -->
     <ImageView
         android:id="@+id/menuButton"
         android:layout_width="40dp"
@@ -32,7 +30,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Album Cover -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/albumCoverCard"
         android:layout_width="0dp"
@@ -56,7 +53,6 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Track Info Container -->
     <LinearLayout
         android:id="@+id/trackInfoLayout"
         android:layout_width="0dp"
@@ -67,7 +63,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Track Name and Artist -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -98,7 +93,6 @@
 
         </LinearLayout>
 
-        <!-- Download Button -->
         <ImageView
             android:id="@+id/downloadButton"
             android:layout_width="40dp"
@@ -108,7 +102,7 @@
             android:src="@drawable/ic_download"
             app:tint="@color/white"
             android:contentDescription="Download" />
-        <!-- Добавить после downloadButton -->
+
         <ProgressBar
             android:id="@+id/downloadProgressBar"
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
@@ -120,7 +114,7 @@
             app:layout_constraintTop_toBottomOf="@id/downloadButton"
             app:layout_constraintStart_toStartOf="@id/downloadButton"
             app:layout_constraintEnd_toEndOf="@id/downloadButton" />
-        <!-- Favorite Button -->
+
         <ImageView
             android:id="@+id/favoriteButton"
             android:layout_width="40dp"
@@ -133,7 +127,6 @@
 
     </LinearLayout>
 
-    <!-- Progress Bar -->
     <SeekBar
         android:id="@+id/seekBar"
         android:layout_width="0dp"
@@ -146,7 +139,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Time Labels -->
     <TextView
         android:id="@+id/currentTimeText"
         android:layout_width="wrap_content"
@@ -169,7 +161,6 @@
         app:layout_constraintTop_toBottomOf="@id/seekBar"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Control Buttons -->
     <LinearLayout
         android:id="@+id/controlsLayout"
         android:layout_width="0dp"
@@ -182,7 +173,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Shuffle Button -->
         <ImageView
             android:id="@+id/shuffleButton"
             android:layout_width="48dp"
@@ -192,7 +182,6 @@
             app:tint="@color/white"
             android:contentDescription="Shuffle" />
 
-        <!-- Previous Button -->
         <ImageView
             android:id="@+id/previousButton"
             android:layout_width="48dp"
@@ -203,7 +192,6 @@
             app:tint="@color/white"
             android:contentDescription="Previous" />
 
-        <!-- Play/Pause Button -->
         <ImageButton
             android:id="@+id/playPauseButton"
             android:layout_width="72dp"
@@ -216,8 +204,6 @@
             android:padding="16dp"
             android:foreground="?attr/selectableItemBackgroundBorderless" />
 
-
-        <!-- Next Button -->
         <ImageView
             android:id="@+id/nextButton"
             android:layout_width="48dp"
@@ -227,7 +213,6 @@
             app:tint="@color/white"
             android:contentDescription="Next" />
 
-        <!-- Repeat Button -->
         <ImageView
             android:id="@+id/repeatButton"
             android:layout_width="48dp"
