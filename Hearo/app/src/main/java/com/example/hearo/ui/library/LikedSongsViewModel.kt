@@ -14,7 +14,6 @@ class LikedSongsViewModel(application: Application) : AndroidViewModel(applicati
 
     private val musicRepository = MusicRepository(application)
 
-    // Автоматически обновляется когда меняется база данных
     val likedTracks: LiveData<List<UniversalTrack>> = musicRepository.getLocalLikedTracks().asLiveData()
 
     private val _likedTracksCount = MutableLiveData<Int>()
@@ -24,9 +23,6 @@ class LikedSongsViewModel(application: Application) : AndroidViewModel(applicati
         loadTracksCount()
     }
 
-    /**
-     * Удалить трек из избранного
-     */
     fun removeTrack(track: UniversalTrack) {
         viewModelScope.launch {
             musicRepository.removeTrackFromLocal(track.id)
@@ -34,9 +30,6 @@ class LikedSongsViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /**
-     * Переключить избранное
-     */
     fun toggleLike(track: UniversalTrack) {
         viewModelScope.launch {
             musicRepository.toggleLocalLike(track)
@@ -44,9 +37,6 @@ class LikedSongsViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /**
-     * Получить количество треков
-     */
     private fun loadTracksCount() {
         viewModelScope.launch {
             val count = musicRepository.getLikedTracksCount()

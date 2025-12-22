@@ -40,7 +40,6 @@ class DownloadedTrackAdapter(
             binding.artistName.text = track.artistName
             binding.trackInfo.text = "${formatDuration(track.durationMs)} • ${formatSize(downloadedTrack.fileSize)}"
 
-            // Badge для полной версии или превью
             if (downloadedTrack.isFull) {
                 binding.typeBadge.text = "Full"
                 binding.typeBadge.setBackgroundResource(R.drawable.badge_full)

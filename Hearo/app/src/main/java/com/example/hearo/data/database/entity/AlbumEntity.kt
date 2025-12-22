@@ -13,6 +13,6 @@ data class AlbumEntity(
     val imageUrl: String?,
     val releaseDate: String?,
     val totalTracks: Int,
-    val albumType: String?, // album, single, compilation
+    val albumType: String?,
     val addedAt: Long = System.currentTimeMillis()
 )

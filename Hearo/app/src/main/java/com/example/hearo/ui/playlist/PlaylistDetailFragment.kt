@@ -170,7 +170,6 @@ class PlaylistDetailFragment : Fragment() {
                 binding.emptyStateLayout.visibility = View.GONE
                 binding.recyclerView.visibility = View.VISIBLE
                 tracksAdapter.submitList(currentTracks)
-                // All tracks in playlist are "liked"
                 tracksAdapter.updateLikedTracks(currentTracks.map { it.id }.toSet())
             }
         }

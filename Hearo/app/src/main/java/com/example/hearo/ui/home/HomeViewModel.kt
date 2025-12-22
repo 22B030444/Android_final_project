@@ -45,7 +45,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private fun loadTrending() {
         viewModelScope.launch {
             _isLoading.value = true
-            // Загружаем популярные треки
             musicRepository.searchITunes("top hits 2024", limit = 10)
                 .onSuccess { tracks ->
                     _trendingTracks.value = tracks
@@ -56,18 +55,15 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun loadRecommendations() {
         viewModelScope.launch {
-            // Берём рекомендации на основе недавно прослушанного
             val recent = historyRepository.getRecentlyPlayedList(5)
             if (recent.isNotEmpty()) {
                 val randomArtist = recent.random().artistName
                 musicRepository.searchITunes(randomArtist, limit = 10)
                     .onSuccess { tracks ->
-                        // Фильтруем чтобы не показывать уже прослушанные
                         val recentIds = recent.map { it.id }.toSet()
                         _recommendations.value = tracks.filter { it.id !in recentIds }
                     }
             } else {
-                // Если истории нет, показываем популярное
                 musicRepository.searchITunes("popular music", limit = 10)
                     .onSuccess { tracks ->
                         _recommendations.value = tracks

@@ -48,7 +48,6 @@ class UniversalTrackAdapter(
             binding.albumName.text = track.albumName
             binding.duration.text = formatDuration(track.durationMs)
 
-            // Source badge
             when (track.source) {
                 MusicSource.ITUNES -> {
                     binding.sourceBadge.text = "iTunes"
@@ -64,21 +63,18 @@ class UniversalTrackAdapter(
                 }
             }
 
-            // Download icon
             if (track.canDownloadFull) {
                 binding.downloadIcon.visibility = android.view.View.VISIBLE
             } else {
                 binding.downloadIcon.visibility = android.view.View.GONE
             }
 
-            // Album image
             Glide.with(binding.root.context)
                 .load(track.imageUrl)
                 .placeholder(R.color.surface_dark)
                 .error(R.color.surface_dark)
                 .into(binding.albumImage)
 
-            // Favorite state
             val isLiked = likedTrackIds.contains(track.id)
             if (isLiked) {
                 binding.favoriteButton.setImageResource(R.drawable.ic_favorite)
@@ -86,7 +82,6 @@ class UniversalTrackAdapter(
                 binding.favoriteButton.setImageResource(R.drawable.ic_favorite_border)
             }
 
-            // Preview availability
             if (track.previewUrl.isNullOrEmpty()) {
                 binding.trackName.alpha = 0.5f
                 binding.artistName.alpha = 0.5f
@@ -95,7 +90,6 @@ class UniversalTrackAdapter(
                 binding.artistName.alpha = 1.0f
             }
 
-            // Click listeners
             binding.root.setOnClickListener {
                 onTrackClick(track)
             }

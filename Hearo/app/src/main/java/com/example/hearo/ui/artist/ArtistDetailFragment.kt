@@ -120,7 +120,6 @@ class ArtistDetailFragment : Fragment() {
 
         artist?.let { setupArtistInfo(it) }
 
-        // Загружаем данные в зависимости от типа
         if (isAlbum && albumId != null) {
             viewModel.loadAlbumDetails(albumId, albumName)
         } else if (artistId != null) {
@@ -176,7 +175,6 @@ class ArtistDetailFragment : Fragment() {
     private fun setupArtistInfo(artist: UniversalArtist, albumImageUrl: String? = null) {
         binding.collapsingToolbar.title = artist.name.uppercase()
 
-        // Load artist/album image - use album cover from first track if available
         val imageUrl = albumImageUrl ?: artist.imageUrl
         if (!imageUrl.isNullOrEmpty()) {
             Glide.with(this)
@@ -208,13 +206,11 @@ class ArtistDetailFragment : Fragment() {
         viewModel.artistState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is UiState.Loading -> {
-                    // Show loading in header area if needed
                 }
                 is UiState.Success -> {
                     setupArtistInfo(state.data, viewModel.albumImageUrl.value)
                 }
                 is UiState.Error -> {
-                    // Keep existing data if any
                 }
                 is UiState.Idle -> {}
             }

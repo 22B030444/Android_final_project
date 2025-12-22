@@ -32,14 +32,11 @@ class ArtistAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(artist: ArtistFull) {
-            // Имя артиста
             binding.artistName.text = artist.name
 
-            // Подписчики
             val followersCount = artist.followers?.total ?: 0
             binding.followersText.text = formatFollowers(followersCount)
 
-            // Жанры
             val genres = artist.genres?.take(3)?.joinToString(" • ") ?: ""
             if (genres.isEmpty()) {
                 binding.genresText.text = "Artist"
@@ -47,16 +44,14 @@ class ArtistAdapter(
                 binding.genresText.text = genres
             }
 
-            // Фото артиста (круглое)
             val imageUrl = artist.images?.firstOrNull()?.url
             Glide.with(binding.root.context)
                 .load(imageUrl)
                 .placeholder(R.color.surface_dark)
                 .error(R.color.surface_dark)
-                .circleCrop() // Делаем круглым
+                .circleCrop()
                 .into(binding.artistImage)
 
-            // Клик по артисту
             binding.root.setOnClickListener {
                 onArtistClick(artist)
             }

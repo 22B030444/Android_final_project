@@ -34,7 +34,6 @@ class UniversalArtistAdapter(
         fun bind(artist: UniversalArtist) {
             binding.artistName.text = artist.name
 
-            // Genres
             val genresText = if (artist.genres.isNotEmpty()) {
                 artist.genres.take(3).joinToString(" • ")
             } else {
@@ -42,7 +41,6 @@ class UniversalArtistAdapter(
             }
             binding.genresText.text = genresText
 
-            // Artist image (circular)
             Glide.with(binding.root.context)
                 .load(artist.imageUrl)
                 .placeholder(R.drawable.ic_person)
@@ -50,7 +48,6 @@ class UniversalArtistAdapter(
                 .circleCrop()
                 .into(binding.artistImage)
 
-            // Click listener
             binding.root.setOnClickListener {
                 onArtistClick(artist)
             }

@@ -25,7 +25,6 @@ interface RecentlyPlayedDao {
     @Query("SELECT COUNT(*) FROM recently_played")
     suspend fun getCount(): Int
 
-    // Удаляем старые записи, оставляя только последние N
     @Query("DELETE FROM recently_played WHERE trackId NOT IN (SELECT trackId FROM recently_played ORDER BY playedAt DESC LIMIT :keepCount)")
     suspend fun trimToSize(keepCount: Int = 50)
 }

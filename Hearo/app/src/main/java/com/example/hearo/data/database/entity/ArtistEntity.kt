@@ -10,7 +10,7 @@ data class ArtistEntity(
     val name: String,
     val imageUrl: String?,
     val followersCount: Int,
-    val genres: String?, // Stored as comma-separated string
+    val genres: String?,
     val monthlyListeners: String?,
     val addedAt: Long = System.currentTimeMillis()
 )

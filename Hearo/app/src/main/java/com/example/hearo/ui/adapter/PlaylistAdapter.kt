@@ -44,7 +44,6 @@ class PlaylistAdapter(
                 "$tracksCount songs"
             }
 
-            // Обложка плейлиста
             val imageUrl = playlist.imageUrl ?: playlistWithTracks.tracks.firstOrNull()?.imageUrl
             Glide.with(binding.root.context)
                 .load(imageUrl)

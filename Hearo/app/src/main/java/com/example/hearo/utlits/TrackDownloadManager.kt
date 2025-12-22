@@ -71,7 +71,6 @@ class TrackDownloadManager(private val context: Context) {
                 val file = downloadFile(url, fileName + extension)
 
                 if (file != null && file.exists()) {
-                    // Сохраняем в базу данных
                     downloadsRepository.saveDownloadedTrack(
                         track = track,
                         localFilePath = file.absolutePath,
@@ -102,7 +101,6 @@ class TrackDownloadManager(private val context: Context) {
         }
     }
 
-    // Для обратной совместимости
     fun downloadTrack(
         url: String,
         trackName: String,
@@ -162,7 +160,6 @@ class TrackDownloadManager(private val context: Context) {
                 val body = response.body ?: throw IOException("Empty response body")
                 val contentLength = body.contentLength()
 
-                // Создаем директорию для загрузок
                 val downloadDir = File(
                     context.getExternalFilesDir(Environment.DIRECTORY_MUSIC),
                     "Hearo"

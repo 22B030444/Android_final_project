@@ -24,7 +24,6 @@ class LikedSongsFragment : Fragment() {
     private val adapter by lazy {
         UniversalTrackAdapter(
             onTrackClick = { track ->
-                // Проверяем наличие preview
                 if (track.previewUrl.isNullOrEmpty()) {
                     Toast.makeText(
                         requireContext(),
@@ -34,7 +33,6 @@ class LikedSongsFragment : Fragment() {
                     return@UniversalTrackAdapter
                 }
 
-                // Переход к плееру
                 val bundle = bundleOf("track" to track)
                 findNavController().navigate(
                     R.id.action_likedSongsFragment_to_playerFragment,
@@ -42,7 +40,6 @@ class LikedSongsFragment : Fragment() {
                 )
             },
             onFavoriteClick = { track ->
-                // Удаляем из избранного
                 viewModel.removeTrack(track)
                 Toast.makeText(
                     requireContext(),
@@ -79,12 +76,10 @@ class LikedSongsFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // Кнопка назад
         binding.backButton.setOnClickListener {
             findNavController().navigateUp()
         }
 
-        // Поиск внутри Liked Songs (опционально)
         binding.searchButton.setOnClickListener {
             Toast.makeText(
                 requireContext(),
@@ -97,19 +92,16 @@ class LikedSongsFragment : Fragment() {
     private fun observeLikedTracks() {
         viewModel.likedTracks.observe(viewLifecycleOwner) { tracks ->
             if (tracks.isEmpty()) {
-                // Показываем empty state
                 binding.emptyStateLayout.visibility = View.VISIBLE
                 binding.recyclerView.visibility = View.GONE
                 binding.tracksCountText.visibility = View.GONE
             } else {
-                // Показываем список
                 binding.emptyStateLayout.visibility = View.GONE
                 binding.recyclerView.visibility = View.VISIBLE
                 binding.tracksCountText.visibility = View.VISIBLE
 
                 adapter.submitList(tracks)
 
-                // Обновляем состояние лайков (все треки лайкнуты)
                 val likedIds = tracks.map { it.id }.toSet()
                 adapter.updateLikedTracks(likedIds)
             }

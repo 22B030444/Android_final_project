@@ -15,15 +15,11 @@ class TrackAdapter(
     private val onFavoriteClick: (Track) -> Unit
 ) : ListAdapter<Track, TrackAdapter.TrackViewHolder>(TrackDiffCallback()) {
 
-    // Храним ID треков которые в избранном
     private var likedTrackIds: Set<String> = emptySet()
 
-    /**
-     * Обновить список лайкнутых треков
-     */
     fun updateLikedTracks(likedIds: Set<String>) {
         likedTrackIds = likedIds
-        notifyDataSetChanged() // Обновляем все элементы
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackViewHolder {
@@ -56,7 +52,6 @@ class TrackAdapter(
                 .error(R.color.surface_dark)
                 .into(binding.trackImage)
 
-            // Устанавливаем правильную иконку в зависимости от состояния
             val isLiked = likedTrackIds.contains(track.id)
             if (isLiked) {
                 binding.favoriteButton.setImageResource(R.drawable.ic_favorite)

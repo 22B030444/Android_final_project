@@ -2,9 +2,6 @@ package com.example.hearo.data.database.entity
 
 import com.example.hearo.data.model.spotify.Track
 
-/**
- * Конвертация Spotify Track -> TrackEntity (для сохранения в БД)
- */
 fun Track.toEntity(): TrackEntity {
     return TrackEntity(
         id = this.id,
@@ -18,9 +15,6 @@ fun Track.toEntity(): TrackEntity {
     )
 }
 
-/**
- * Конвертация TrackEntity -> Track (для отображения в UI)
- */
 fun TrackEntity.toTrack(): Track {
     return Track(
         id = this.id,

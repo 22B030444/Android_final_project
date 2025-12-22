@@ -28,10 +28,8 @@ class MainActivity : AppCompatActivity() {
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        // Связываем Bottom Navigation с NavController
         binding.bottomNavigation.setupWithNavController(navController)
 
-        // ⭐ Скрываем Bottom Navigation на Login и Player экранах
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
                 R.id.loginFragment, R.id.playerFragment -> {

@@ -31,7 +31,7 @@ class LoginFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // Кнопка Log in
+
         binding.loginButton.setOnClickListener {
             val username = binding.usernameEditText.text.toString().trim()
             val password = binding.passwordEditText.text.toString().trim()
@@ -45,7 +45,6 @@ class LoginFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // Простая "авторизация" (без проверки)
             Toast.makeText(
                 requireContext(),
                 "Welcome, $username!",
@@ -54,7 +53,6 @@ class LoginFragment : Fragment() {
             navigateToHome()
         }
 
-        // Forgot Password (заглушка)
         binding.forgotPasswordText.setOnClickListener {
             Toast.makeText(
                 requireContext(),
@@ -63,7 +61,6 @@ class LoginFragment : Fragment() {
             ).show()
         }
 
-        // Social Login (заглушки)
         binding.googleButton.setOnClickListener {
             Toast.makeText(
                 requireContext(),

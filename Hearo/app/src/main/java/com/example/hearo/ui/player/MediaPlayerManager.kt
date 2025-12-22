@@ -24,9 +24,6 @@ class MediaPlayerManager {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    /**
-     * Воспроизвести трек по URL
-     */
     fun play(url: String?) {
         if (url.isNullOrEmpty()) {
             Log.e("MediaPlayerManager", "URL is null or empty")
@@ -35,24 +32,20 @@ class MediaPlayerManager {
         }
 
         try {
-            // Останавливаем предыдущий плеер
             stop()
 
             _isPreparing.value = true
             _error.value = null
 
-            // Создаем новый MediaPlayer
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(url)
 
-                // Подготовка асинхронная
                 prepareAsync()
 
                 setOnPreparedListener {
                     _isPreparing.value = false
                     _duration.value = duration
 
-                    // Автоматически начинаем воспроизведение
                     start()
                     _isPlaying.value = true
 
@@ -84,9 +77,6 @@ class MediaPlayerManager {
         }
     }
 
-    /**
-     * Пауза
-     */
     fun pause() {
         mediaPlayer?.let {
             if (it.isPlaying) {
@@ -97,9 +87,6 @@ class MediaPlayerManager {
         }
     }
 
-    /**
-     * Возобновить
-     */
     fun resume() {
         mediaPlayer?.let {
             if (!it.isPlaying) {
@@ -110,9 +97,6 @@ class MediaPlayerManager {
         }
     }
 
-    /**
-     * Остановить
-     */
     fun stop() {
         mediaPlayer?.let {
             try {
@@ -132,9 +116,6 @@ class MediaPlayerManager {
         _duration.value = 0
     }
 
-    /**
-     * Перемотать на позицию
-     */
     fun seekTo(position: Int) {
         mediaPlayer?.let {
             try {
@@ -147,9 +128,6 @@ class MediaPlayerManager {
         }
     }
 
-    /**
-     * Получить текущую позицию
-     */
     fun getCurrentPosition(): Int {
         return try {
             mediaPlayer?.currentPosition ?: 0
@@ -158,9 +136,6 @@ class MediaPlayerManager {
         }
     }
 
-    /**
-     * Получить длительность
-     */
     fun getDuration(): Int {
         return try {
             mediaPlayer?.duration ?: 0
@@ -169,9 +144,6 @@ class MediaPlayerManager {
         }
     }
 
-    /**
-     * Проверка идет ли воспроизведение
-     */
     fun isCurrentlyPlaying(): Boolean {
         return try {
             mediaPlayer?.isPlaying ?: false
@@ -180,9 +152,6 @@ class MediaPlayerManager {
         }
     }
 
-    /**
-     * Очистить ресурсы
-     */
     fun release() {
         stop()
     }

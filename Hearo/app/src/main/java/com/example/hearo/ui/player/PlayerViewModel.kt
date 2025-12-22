@@ -77,7 +77,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         checkIfLiked(track.id)
         checkIfDownloaded(track.id)
 
-        // Сохраняем в историю прослушивания
         viewModelScope.launch {
             historyRepository.addToHistory(track)
         }
@@ -200,7 +199,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     fun downloadTrack() {
         val track = _currentTrack.value ?: return
 
-        // Проверяем, не скачан ли уже
         viewModelScope.launch {
             if (downloadsRepository.isTrackDownloaded(track.id)) {
                 _showMessage.value = "Track already downloaded"

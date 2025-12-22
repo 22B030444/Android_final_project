@@ -34,9 +34,6 @@ class MusicRepository(context: Context) {
     private val artistDao = database.artistDao()
     private val albumDao = database.albumDao()
 
-    // ========================================
-    // ITUNES SEARCH - TRACKS
-    // ========================================
 
     suspend fun searchITunes(query: String, limit: Int = 25): Result<List<UniversalTrack>> {
         return withContext(Dispatchers.IO) {
@@ -59,10 +56,6 @@ class MusicRepository(context: Context) {
         }
     }
 
-    // ========================================
-    // ITUNES SEARCH - ARTISTS
-    // ========================================
-
     suspend fun searchArtists(query: String, limit: Int = 25): Result<List<UniversalArtist>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -84,10 +77,6 @@ class MusicRepository(context: Context) {
         }
     }
 
-    // ========================================
-    // ITUNES SEARCH - ALBUMS
-    // ========================================
-
     suspend fun searchAlbums(query: String, limit: Int = 25): Result<List<UniversalAlbum>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -108,10 +97,6 @@ class MusicRepository(context: Context) {
             }
         }
     }
-
-    // ========================================
-    // ARTIST DETAILS - Get artist with songs
-    // ========================================
 
     suspend fun getArtistDetails(artistId: String): Result<Pair<UniversalArtist?, List<UniversalTrack>>> {
         return withContext(Dispatchers.IO) {
@@ -165,10 +150,6 @@ class MusicRepository(context: Context) {
             }
         }
     }
-
-    // ========================================
-    // ALBUM DETAILS - Get album with tracks
-    // ========================================
 
     suspend fun getAlbumDetails(albumId: String): Result<Pair<UniversalAlbum?, List<UniversalTrack>>> {
         return withContext(Dispatchers.IO) {
@@ -224,9 +205,6 @@ class MusicRepository(context: Context) {
         }
     }
 
-    // ========================================
-    // JAMENDO SEARCH
-    // ========================================
 
     suspend fun searchJamendo(query: String, limit: Int = 20): Result<List<UniversalTrack>> {
         return withContext(Dispatchers.IO) {
@@ -250,10 +228,6 @@ class MusicRepository(context: Context) {
         }
     }
 
-    // ========================================
-    // COMBINED SEARCH
-    // ========================================
-
     suspend fun searchBoth(query: String): Result<Pair<List<UniversalTrack>, List<UniversalTrack>>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -275,10 +249,6 @@ class MusicRepository(context: Context) {
             }
         }
     }
-
-    // ========================================
-    // LOCAL DATABASE - TRACKS (Room)
-    // ========================================
 
     fun getLocalLikedTracks(): Flow<List<UniversalTrack>> {
         return trackDao.getAllLikedTracks().map { entities ->
@@ -318,19 +288,15 @@ class MusicRepository(context: Context) {
             trackDao.isTrackLiked(trackId)
         }
     }
-    /**
-     * Получить фото артиста через поиск
-     */
+
     suspend fun getArtistImage(artistName: String): String? {
         return withContext(Dispatchers.IO) {
             try {
-                // Ищем альбомы артиста
                 val response = itunesApi.searchAlbums(
                     term = artistName,
                     limit = 5
                 )
 
-                // Берём первый альбом с изображением
                 val imageUrl = response.results
                     .firstOrNull { !it.artworkUrl100.isNullOrEmpty() }
                     ?.getHighResArtwork()
@@ -366,11 +332,6 @@ class MusicRepository(context: Context) {
         }
     }
 
-    // ========================================
-    // LOCAL DATABASE - ARTISTS (Room)
-    // ========================================
-
-    // Replace the current getFollowedArtists() function with this:
     fun getFollowedArtists(): Flow<List<UniversalArtist>> {
         return artistDao.getAllFollowedArtists().map { entities ->
             entities.map { entity ->
@@ -419,10 +380,6 @@ class MusicRepository(context: Context) {
         }
     }
 
-    // ========================================
-    // LOCAL DATABASE - ALBUMS (Room)
-    // ========================================
-
     fun getSavedAlbums(): Flow<List<AlbumEntity>> {
         return albumDao.getAllSavedAlbums()
     }
@@ -461,10 +418,6 @@ class MusicRepository(context: Context) {
         }
     }
 
-    // ========================================
-    // SEARCH HISTORY
-    // ========================================
-
     fun getSearchHistory(): List<String> {
         return preferences.getSearchHistory()
     }
@@ -474,9 +427,6 @@ class MusicRepository(context: Context) {
     }
 }
 
-/**
- * Converter for backward compatibility with Room
- */
 private fun UniversalTrack.toOldTrackModel(): com.example.hearo.data.model.spotify.Track {
     return com.example.hearo.data.model.spotify.Track(
         id = id,

@@ -32,14 +32,11 @@ class AlbumAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(album: AlbumFull) {
-            // Название альбома
             binding.albumName.text = album.name
 
-            // Исполнители
             val artistsText = album.artists.joinToString(", ") { it.name }
             binding.artistName.text = artistsText
 
-            // Дополнительная информация
             val albumType = when (album.albumType) {
                 "album" -> "Album"
                 "single" -> "Single"
@@ -58,7 +55,6 @@ class AlbumAdapter(
 
             binding.albumInfo.text = infoText
 
-            // Обложка альбома
             val imageUrl = album.images.firstOrNull()?.url
             Glide.with(binding.root.context)
                 .load(imageUrl)
@@ -66,7 +62,6 @@ class AlbumAdapter(
                 .error(R.color.surface_dark)
                 .into(binding.albumImage)
 
-            // Клик по альбому
             binding.root.setOnClickListener {
                 onAlbumClick(album)
             }

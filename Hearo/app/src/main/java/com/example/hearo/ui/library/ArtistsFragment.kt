@@ -25,7 +25,6 @@ class ArtistsFragment : Fragment() {
     private val artistsAdapter by lazy {
         ArtistGridAdapter(
             onArtistClick = { artist ->
-                // Навигация к экрану артиста
                 val bundle = Bundle().apply {
                     putString("artistName", artist.name)
                     putString("artistId", artist.id)
@@ -36,7 +35,6 @@ class ArtistsFragment : Fragment() {
                 showArtistOptionsDialog(artist)
             },
             onAddMoreClick = {
-                // Переход к поиску артистов
                 findNavController().navigate(R.id.action_artistsFragment_to_searchFragment)
             }
         )

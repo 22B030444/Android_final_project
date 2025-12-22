@@ -35,7 +35,6 @@ class UniversalAlbumAdapter(
             binding.albumName.text = album.name
             binding.artistName.text = album.artistName
 
-            // Album info
             val year = album.releaseDate?.take(4) ?: ""
             val tracks = if (album.totalTracks > 0) "${album.totalTracks} tracks" else ""
 
@@ -47,14 +46,12 @@ class UniversalAlbumAdapter(
 
             binding.albumInfo.text = infoText
 
-            // Album cover
             Glide.with(binding.root.context)
                 .load(album.imageUrl)
                 .placeholder(R.color.surface_dark)
                 .error(R.color.surface_dark)
                 .into(binding.albumImage)
 
-            // Click listener
             binding.root.setOnClickListener {
                 onAlbumClick(album)
             }

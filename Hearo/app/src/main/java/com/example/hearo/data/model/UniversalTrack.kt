@@ -34,7 +34,7 @@ fun ITunesTrack.toUniversalTrack(): UniversalTrack {
         albumName = collectionName ?: "",
         imageUrl = getHighResArtwork(),
         previewUrl = previewUrl,
-        downloadUrl = null, // iTunes не даёт прямую ссылку на скачивание
+        downloadUrl = null,
         durationMs = trackTimeMillis ?: 30000,
         source = MusicSource.ITUNES,
         canDownloadFull = false,

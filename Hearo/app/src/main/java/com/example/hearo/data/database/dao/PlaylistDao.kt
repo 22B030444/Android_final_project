@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface PlaylistDao {
 
-    // ========== PLAYLIST OPERATIONS ==========
 
     @Query("SELECT * FROM playlists ORDER BY updatedAt DESC")
     fun getAllPlaylists(): Flow<List<PlaylistEntity>>
@@ -59,7 +58,6 @@ interface PlaylistDao {
     @Query("SELECT EXISTS(SELECT 1 FROM playlist_tracks WHERE playlistId = :playlistId AND trackId = :trackId)")
     suspend fun isTrackInPlaylist(playlistId: Long, trackId: String): Boolean
 
-    // Обновить время изменения плейлиста
     @Query("UPDATE playlists SET updatedAt = :timestamp WHERE id = :playlistId")
     suspend fun updatePlaylistTimestamp(playlistId: Long, timestamp: Long = System.currentTimeMillis())
 }

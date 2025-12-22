@@ -61,12 +61,10 @@ class DownloadsRepository(private val context: Context) {
             try {
                 val track = downloadedTrackDao.getDownloadedTrack(trackId)
                 if (track != null) {
-                    // Удаляем файл
                     val file = File(track.localFilePath)
                     if (file.exists()) {
                         file.delete()
                     }
-                    // Удаляем из БД
                     downloadedTrackDao.deleteDownload(trackId)
                     Log.d("DownloadsRepository", "Deleted download: $trackId")
                 }
@@ -121,7 +119,7 @@ class DownloadsRepository(private val context: Context) {
                 artistName = artistName,
                 albumName = albumName,
                 imageUrl = imageUrl,
-                previewUrl = localFilePath,  // Используем локальный путь для воспроизведения
+                previewUrl = localFilePath,
                 downloadUrl = null,
                 durationMs = durationMs,
                 source = try { MusicSource.valueOf(source) } catch (e: Exception) { MusicSource.ITUNES },

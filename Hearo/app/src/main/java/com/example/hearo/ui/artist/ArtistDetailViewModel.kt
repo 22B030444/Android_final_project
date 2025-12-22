@@ -50,7 +50,6 @@ class ArtistDetailViewModel(application: Application) : AndroidViewModel(applica
                 .onSuccess { (artist, tracks) ->
                     val trackImageUrl = tracks.firstOrNull()?.imageUrl
 
-                    // Пытаемся получить фото артиста
                     val artistImageUrl = if (artistName != null) {
                         musicRepository.getArtistImage(artistName)
                     } else {
@@ -102,9 +101,6 @@ class ArtistDetailViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    /**
-     * Загрузка треков конкретного альбома
-     */
     fun loadAlbumDetails(albumId: String, albumName: String? = null) {
         viewModelScope.launch {
             _artistState.value = UiState.Loading
@@ -114,7 +110,6 @@ class ArtistDetailViewModel(application: Application) : AndroidViewModel(applica
                 .onSuccess { (album, tracks) ->
                     _albumImageUrl.value = album?.imageUrl ?: tracks.firstOrNull()?.imageUrl
 
-                    // Создаём "артиста" из данных альбома для отображения в хедере
                     val albumAsArtist = UniversalArtist(
                         id = albumId,
                         name = album?.name ?: albumName ?: "Unknown Album",

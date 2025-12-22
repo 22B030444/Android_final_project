@@ -34,28 +34,24 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
 
     fun loadCounts() {
         viewModelScope.launch {
-            // Liked Songs
             musicRepository.getLocalLikedTracks().collect { tracks ->
                 _likedSongsCount.value = tracks.size
             }
         }
 
         viewModelScope.launch {
-            // Downloads
             downloadsRepository.getAllDownloads().collect { downloads ->
                 _downloadsCount.value = downloads.size
             }
         }
 
         viewModelScope.launch {
-            // Artists
             musicRepository.getFollowedArtists().collect { artists ->
                 _artistsCount.value = artists.size
             }
         }
 
         viewModelScope.launch {
-            // Playlists
             playlistRepository.getAllPlaylistsWithTracks().collect { playlists ->
                 _playlistsCount.value = playlists.size
             }

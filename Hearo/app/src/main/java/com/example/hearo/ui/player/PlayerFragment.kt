@@ -39,7 +39,6 @@ class PlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Получаем трек и список треков
         val track = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arguments?.getParcelable("track", UniversalTrack::class.java)
         } else {
@@ -111,22 +110,18 @@ class PlayerFragment : Fragment() {
             viewModel.togglePlayPause()
         }
 
-        // ⭐ Previous
         binding.previousButton.setOnClickListener {
             viewModel.playPrevious()
         }
 
-        // ⭐ Next
         binding.nextButton.setOnClickListener {
             viewModel.playNext()
         }
 
-        // ⭐ Shuffle
         binding.shuffleButton.setOnClickListener {
             viewModel.toggleShuffle()
         }
 
-        // ⭐ Repeat
         binding.repeatButton.setOnClickListener {
             viewModel.toggleRepeat()
         }
@@ -160,7 +155,6 @@ class PlayerFragment : Fragment() {
     }
 
     private fun observeStates() {
-        // Воспроизведение
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.mediaPlayer.isPlaying.collect { isPlaying ->
                 if (isPlaying) {
@@ -171,7 +165,6 @@ class PlayerFragment : Fragment() {
             }
         }
 
-        // ⭐ Shuffle состояние
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.isShuffleEnabled.collect { isEnabled ->
                 if (isEnabled) {
@@ -186,7 +179,6 @@ class PlayerFragment : Fragment() {
             }
         }
 
-        // ⭐ Repeat режим
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.repeatMode.collect { mode ->
                 when (mode) {
@@ -207,20 +199,16 @@ class PlayerFragment : Fragment() {
                         binding.repeatButton.setColorFilter(
                             ContextCompat.getColor(requireContext(), R.color.purple_primary)
                         )
-                        // Можно добавить индикатор "1" на иконку
                     }
                 }
             }
         }
 
-        // Подготовка
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.mediaPlayer.isPreparing.collect { isPreparing ->
-                // Можно показать индикатор загрузки
             }
         }
 
-        // Ошибки
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.mediaPlayer.error.collect { error ->
                 error?.let {
@@ -229,7 +217,6 @@ class PlayerFragment : Fragment() {
             }
         }
 
-        // Избранное
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.isLiked.collect { isLiked ->
                 if (isLiked) {
@@ -240,7 +227,6 @@ class PlayerFragment : Fragment() {
             }
         }
 
-        // Прогресс
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.currentPosition.collect { position ->
                 binding.seekBar.progress = position
@@ -248,7 +234,6 @@ class PlayerFragment : Fragment() {
             }
         }
 
-        // Длительность
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.duration.collect { duration ->
                 if (duration > 0) {
@@ -258,7 +243,6 @@ class PlayerFragment : Fragment() {
             }
         }
 
-        // Смена трека
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.currentTrack.collect { track ->
                 track?.let {
@@ -267,7 +251,6 @@ class PlayerFragment : Fragment() {
             }
         }
 
-        // Сообщения от ViewModel
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.showMessage.collect { message ->
                 message?.let {
@@ -276,7 +259,7 @@ class PlayerFragment : Fragment() {
                 }
             }
         }
-        // Добавить в observeViewModel():
+
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.isDownloaded.collect { isDownloaded ->
