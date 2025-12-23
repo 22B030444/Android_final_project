@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.widget.addTextChangedListener
@@ -16,7 +17,9 @@ import com.example.hearo.data.model.UniversalAlbum
 import com.example.hearo.data.model.UniversalArtist
 import com.example.hearo.data.model.UniversalTrack
 import com.example.hearo.data.model.UiState
+import com.example.hearo.data.preferences.AppPreferences
 import com.example.hearo.databinding.FragmentSearchBinding
+import com.example.hearo.ui.adapter.SearchHistoryAdapter
 import com.example.hearo.ui.adapter.UniversalAlbumAdapter
 import com.example.hearo.ui.adapter.UniversalArtistAdapter
 import com.example.hearo.ui.adapter.UniversalTrackAdapter
@@ -28,6 +31,8 @@ class SearchFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: SearchViewModel by viewModels()
+
+    private lateinit var preferences: AppPreferences
 
     private var currentSearchResults: List<UniversalTrack> = emptyList()
 
@@ -84,9 +89,6 @@ class SearchFragment : Fragment() {
             .show()
     }
 
-
-
-
     private val albumAdapter by lazy {
         UniversalAlbumAdapter { album ->
             val bundle = bundleOf(
@@ -117,6 +119,19 @@ class SearchFragment : Fragment() {
         }
     }
 
+    private val historyAdapter by lazy {
+        SearchHistoryAdapter(
+            onItemClick = { query ->
+                binding.searchEditText.setText(query)
+                binding.searchEditText.setSelection(query.length)
+                performSearch(query)
+            },
+            onRemoveClick = { query ->
+                removeFromHistory(query)
+            }
+        )
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -129,11 +144,16 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        preferences = AppPreferences(requireContext())
+
         setupRecyclerView()
+        setupHistoryRecyclerView()
         setupSearch()
         setupTabs()
         setupSourceFilter()
         observeStates()
+
+        showSearchHistory()
     }
 
     private fun setupRecyclerView() {
@@ -141,11 +161,72 @@ class SearchFragment : Fragment() {
         binding.recyclerView.adapter = trackAdapter
     }
 
+    private fun setupHistoryRecyclerView() {
+        binding.historyRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.historyRecyclerView.adapter = historyAdapter
+
+        binding.clearHistoryButton.setOnClickListener {
+            preferences.clearSearchHistory()
+            showSearchHistory()
+        }
+    }
+
     private fun setupSearch() {
         binding.searchEditText.addTextChangedListener { text ->
             val query = text.toString()
+            if (query.isEmpty()) {
+                showSearchHistory()
+            } else {
+                hideSearchHistory()
+                viewModel.search(query)
+            }
+        }
+
+        binding.searchEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                val query = binding.searchEditText.text.toString().trim()
+                if (query.isNotEmpty()) {
+                    performSearch(query)
+                }
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    private fun performSearch(query: String) {
+        if (query.isNotEmpty()) {
+            preferences.saveSearchQuery(query)
+            hideSearchHistory()
             viewModel.search(query)
         }
+    }
+
+    private fun showSearchHistory() {
+        val history = preferences.getSearchHistory()
+        if (history.isNotEmpty()) {
+            binding.searchHistorySection.visibility = View.VISIBLE
+            binding.emptyStateText.visibility = View.GONE
+            binding.recyclerView.visibility = View.GONE
+            historyAdapter.submitList(history)
+        } else {
+            binding.searchHistorySection.visibility = View.GONE
+            binding.emptyStateText.visibility = View.VISIBLE
+            binding.emptyStateText.text = "Search for songs, artists, or albums"
+        }
+    }
+
+    private fun hideSearchHistory() {
+        binding.searchHistorySection.visibility = View.GONE
+    }
+
+    private fun removeFromHistory(query: String) {
+        val history = preferences.getSearchHistory().toMutableList()
+        history.remove(query)
+        preferences.clearSearchHistory()
+        history.forEach { preferences.saveSearchQuery(it) }
+        showSearchHistory()
     }
 
     private fun setupTabs() {
@@ -228,17 +309,23 @@ class SearchFragment : Fragment() {
             is UiState.Idle -> {
                 binding.progressBar.visibility = View.GONE
                 binding.recyclerView.visibility = View.GONE
-                binding.emptyStateText.visibility = View.VISIBLE
-                binding.emptyStateText.text = "Search for songs"
                 currentSearchResults = emptyList()
+                if (binding.searchEditText.text.isNullOrEmpty()) {
+                    showSearchHistory()
+                } else {
+                    binding.emptyStateText.visibility = View.VISIBLE
+                    binding.emptyStateText.text = "Search for songs"
+                }
             }
             is UiState.Loading -> {
                 binding.progressBar.visibility = View.VISIBLE
                 binding.recyclerView.visibility = View.GONE
                 binding.emptyStateText.visibility = View.GONE
+                binding.searchHistorySection.visibility = View.GONE
             }
             is UiState.Success -> {
                 binding.progressBar.visibility = View.GONE
+                binding.searchHistorySection.visibility = View.GONE
                 if (state.data.isEmpty()) {
                     binding.recyclerView.visibility = View.GONE
                     binding.emptyStateText.visibility = View.VISIBLE
@@ -254,6 +341,7 @@ class SearchFragment : Fragment() {
             is UiState.Error -> {
                 binding.progressBar.visibility = View.GONE
                 binding.recyclerView.visibility = View.GONE
+                binding.searchHistorySection.visibility = View.GONE
                 binding.emptyStateText.visibility = View.VISIBLE
                 binding.emptyStateText.text = "Error: ${state.message}"
                 currentSearchResults = emptyList()
@@ -266,16 +354,22 @@ class SearchFragment : Fragment() {
             is UiState.Idle -> {
                 binding.progressBar.visibility = View.GONE
                 binding.recyclerView.visibility = View.GONE
-                binding.emptyStateText.visibility = View.VISIBLE
-                binding.emptyStateText.text = "Search for albums"
+                if (binding.searchEditText.text.isNullOrEmpty()) {
+                    showSearchHistory()
+                } else {
+                    binding.emptyStateText.visibility = View.VISIBLE
+                    binding.emptyStateText.text = "Search for albums"
+                }
             }
             is UiState.Loading -> {
                 binding.progressBar.visibility = View.VISIBLE
                 binding.recyclerView.visibility = View.GONE
                 binding.emptyStateText.visibility = View.GONE
+                binding.searchHistorySection.visibility = View.GONE
             }
             is UiState.Success -> {
                 binding.progressBar.visibility = View.GONE
+                binding.searchHistorySection.visibility = View.GONE
                 if (state.data.isEmpty()) {
                     binding.recyclerView.visibility = View.GONE
                     binding.emptyStateText.visibility = View.VISIBLE
@@ -289,6 +383,7 @@ class SearchFragment : Fragment() {
             is UiState.Error -> {
                 binding.progressBar.visibility = View.GONE
                 binding.recyclerView.visibility = View.GONE
+                binding.searchHistorySection.visibility = View.GONE
                 binding.emptyStateText.visibility = View.VISIBLE
                 binding.emptyStateText.text = "Error: ${state.message}"
             }
@@ -300,16 +395,22 @@ class SearchFragment : Fragment() {
             is UiState.Idle -> {
                 binding.progressBar.visibility = View.GONE
                 binding.recyclerView.visibility = View.GONE
-                binding.emptyStateText.visibility = View.VISIBLE
-                binding.emptyStateText.text = "Search for artists"
+                if (binding.searchEditText.text.isNullOrEmpty()) {
+                    showSearchHistory()
+                } else {
+                    binding.emptyStateText.visibility = View.VISIBLE
+                    binding.emptyStateText.text = "Search for artists"
+                }
             }
             is UiState.Loading -> {
                 binding.progressBar.visibility = View.VISIBLE
                 binding.recyclerView.visibility = View.GONE
                 binding.emptyStateText.visibility = View.GONE
+                binding.searchHistorySection.visibility = View.GONE
             }
             is UiState.Success -> {
                 binding.progressBar.visibility = View.GONE
+                binding.searchHistorySection.visibility = View.GONE
                 if (state.data.isEmpty()) {
                     binding.recyclerView.visibility = View.GONE
                     binding.emptyStateText.visibility = View.VISIBLE
@@ -323,6 +424,7 @@ class SearchFragment : Fragment() {
             is UiState.Error -> {
                 binding.progressBar.visibility = View.GONE
                 binding.recyclerView.visibility = View.GONE
+                binding.searchHistorySection.visibility = View.GONE
                 binding.emptyStateText.visibility = View.VISIBLE
                 binding.emptyStateText.text = "Error: ${state.message}"
             }
